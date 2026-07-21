@@ -1,0 +1,131 @@
+/* RESET */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  background: #eef3ff;
+  color: #1f2937;
+  overflow-x: hidden;
+}
+
+/* Hilangkan garis focus bawaan Bootstrap */
+.form-control:focus {
+  box-shadow: none !important;
+}
+
+/* Placeholder */
+.form-control::placeholder {
+  color: #9ca3af;
+}
+
+/* Link */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Button */
+button {
+  font-family: inherit;
+}
+
+/* Image */
+img {
+  max-width: 100%;
+  display: block;
+}
+
+.dropdown-toggle::after {
+  display: none !important;
+}
+
+/* Table */
+table thead th{
+    font-size:13px;
+    color:#94A3B8;
+    font-weight:600;
+    padding:18px 14px;
+}
+
+table tbody td{
+    font-size:14px;
+    color:#334155;
+    padding:18px 14px;
+}
+
+table tbody tr{
+    border-top:1px solid #F1F5F9;
+}
+
+
+/* Calender */
+
+.calendar-modal .modal-dialog{
+    max-width:900px;
+}
+
+.calendar-modal .modal-content{
+    border-radius:20px;
+}
+
+.calendar-modal .modal-body{
+    overflow:hidden;
+}
+
+.react-calendar{
+    width:100%;
+    max-width:340px;
+    border:none;
+    font-family:inherit;
+}
+
+.react-calendar__navigation{
+    margin-bottom:16px;
+}
+
+.react-calendar__month-view{
+    padding:0 8px;
+}
+
+.react-calendar__tile{
+    height:38px;
+    border-radius:10px;
+}
+
+.react-calendar__tile--active{
+    background:#2538C8 !important;
+    color:white !important;
+}
+
+.react-calendar__tile--now{
+    background:#E8EEFF;
+}
+
+.react-calendar__navigation button{
+    min-width:40px;
+}
+
+.react-calendar__navigation__label{
+    font-size:18px;
+    font-weight:700;
+}
+
+.calendar-modal .modal-content{
+    border-radius:20px;
+}
+
+.calendar-modal .modal-dialog{
+    max-width:980px;
+}
