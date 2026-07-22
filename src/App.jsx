@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import UserManagement from "./pages/UserManagement";
 import MainLayout from "./layouts/MainLayout";
+import AddUser from "./pages/AddUser";
 
 function App() {
   return (
@@ -11,18 +12,24 @@ function App() {
 
       <Route path="/login" element={<Login />} />
 
+      {/* Halaman yang memakai Sidebar */}
       <Route element={<MainLayout />}>
         <Route
           path="/user-management"
           element={<UserManagement />}
         />
 
-        {/* Sementara dashboard diarahkan ke User Management */}
         <Route
           path="/dashboard"
           element={<Navigate to="/user-management" replace />}
         />
       </Route>
+
+      {/* Halaman TANPA Sidebar */}
+      <Route
+        path="/user-management/tambah"
+        element={<AddUser />}
+      />
     </Routes>
   );
 }
