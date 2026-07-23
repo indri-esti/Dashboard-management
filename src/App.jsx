@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import UserManagement from "./pages/UserManagement";
 import MainLayout from "./layouts/MainLayout";
 import AddUser from "./pages/AddUser";
+import EditUser from "./pages/EditUser";
 
 function App() {
   return (
@@ -29,6 +30,12 @@ function App() {
       <Route
         path="/user-management/tambah"
         element={<AddUser />}
+      />
+
+      {/* Halaman Edit User */}
+      <Route
+        path="/user-management/edit/:id"
+        element={<EditUser />}
       />
     </Routes>
   );

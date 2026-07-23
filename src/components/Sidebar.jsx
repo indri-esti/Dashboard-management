@@ -13,11 +13,24 @@ import {
   MdKeyboardArrowDown,
   MdKeyboardArrowRight,
   MdLogout,
+  MdOutlineCampaign,
+  MdOutlineSchool,
+  MdOutlineCardGiftcard,
+  MdOutlineArticle,
+  MdOutlineEvent,
+  MdOutlineImage,
+  MdOutlineStorage,
+  MdOutlinePeople,
 } from "react-icons/md";
+
+import logo from "../assets/logo.png";
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 function Sidebar() {
+  
+  const [openMaster, setOpenMaster] = useState(true);
+
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -82,52 +95,86 @@ function Sidebar() {
   };
 
   const menuStyle = (active) => ({
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    padding: "12px 14px",
-    borderRadius: "10px",
-    marginBottom: "6px",
-    color: "#fff",
-    background: active ? "rgba(255,255,255,.12)" : "transparent",
-    fontWeight: active ? "600" : "500",
-    textDecoration: "none",
-  });
+  display: "flex",
+  alignItems: "center",
+  gap: 12,
+  padding: "13px 16px",
+  borderRadius: 14,
+  marginBottom: 8,
+  color: "#fff",
+  background: active
+  ? "rgba(255,255,255,.15)"
+  : "transparent",
+
+boxShadow: active
+  ? "0 8px 20px rgba(0,0,0,.15)"
+  : "none",
+  fontWeight: active ? "700" : "500",
+  transition: ".25s",
+  textDecoration: "none",
+});
 
   const submenuStyle = (active) => ({
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    padding: "10px 12px",
-    borderRadius: "8px",
-    marginBottom: "4px",
-    color: "#fff",
-    background: active ? "rgba(255,255,255,.12)" : "transparent",
-    textDecoration: "none",
-    fontSize: 14,
-  });
+  display: "flex",
+  alignItems: "center",
+  gap: 12,
+  padding: "10px 12px",
+  borderRadius: 10,
+  marginBottom: 5,
+  color: "#E6EAFD",
+  background: active ? "rgba(255,255,255,.10)" : "transparent",
+  textDecoration: "none",
+  fontSize: 14,
+  transition: ".25s",
+});
 
   return (
     <div
       style={{
-        width: 260,
+        width: "clamp(250px,20vw,290px)",
         minHeight: "100vh",
-        background: "#243bb8",
+        background: "linear-gradient(180deg, #2F49C8 0%, #243BB8 100%)",
+        boxShadow: "6px 0 20px rgba(0,0,0,0.15)",
+        borderRight: "1px solid rgba(255,255,255,.08)",
         display: "flex",
         flexDirection: "column",
-        padding: "22px 18px",
+        padding:"24px 18px",
         color: "#fff",
       }}
     >
-      <h4
-        style={{
-          textAlign: "center",
-          fontWeight: "700",
-          marginBottom: "25px",
-        }}
-      >
-        DASHBOARD
-      </h4>
+     <div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 35,
+    paddingLeft: 5,
+  }}
+>
+  <img
+    src={logo}
+    alt="logo"
+    style={{
+      width: 48,
+      height: 48,
+      objectFit: "contain",
+      background: "transparent",
+      border: "none",
+    }}
+  />
+
+  <h3
+    style={{
+      margin: 0,
+      color: "#fff",
+      fontWeight: "800",
+      letterSpacing: ".5px",
+      fontSize:"clamp(20px,2vw,26px)"
+    }}
+  >
+    DASHBOARD
+  </h3>
+</div>
 
       <Nav className="flex-column">
         {/* Beranda */}
@@ -149,6 +196,17 @@ function Sidebar() {
           <MdOutlineGroups size={18} />
           <span>User Management</span>
         </Nav.Link>
+        
+        {/* Leads Management */}
+  <Nav.Link
+    as={Link}
+    to="/leads-management"
+    style={menuStyle(location.pathname === "/leads-management")}
+  >
+    <MdOutlinePeople size={20} />
+    <span>Leads Management</span>
+  </Nav.Link>
+
 
         {/* Dropdown */}
         <div>
@@ -216,6 +274,67 @@ function Sidebar() {
             </div>
           )}
         </div>
+        
+          {/* Master Data */}
+        <div style={{ marginTop: 8 }}>
+  <div
+    onClick={() => setOpenMaster(!openMaster)}
+    style={{
+      display: "flex",
+      alignItems: "center",
+      cursor: "pointer",
+      padding: "12px 14px",
+      borderRadius: 10,
+      color: "#fff",
+    }}
+  >
+    {openMaster ? (
+      <MdKeyboardArrowDown size={18} />
+    ) : (
+      <MdKeyboardArrowRight size={18} />
+    )}
+
+    <MdOutlineStorage
+      size={20}
+      style={{
+        marginLeft: 8,
+        marginRight: 10,
+      }}
+    />
+
+    <span>Master Data</span>
+  </div>
+
+  {openMaster && (
+    <div style={{ marginLeft: 30 }}>
+      <Nav.Link as={Link} to="/banner" style={submenuStyle(location.pathname === "/banner")}>
+        <MdOutlineImage size={18} />
+        Main Banner
+      </Nav.Link>
+
+      <Nav.Link as={Link} to="/kelas" style={submenuStyle(location.pathname === "/kelas")}>
+        <MdOutlineSchool size={18} />
+        Kelas
+      </Nav.Link>
+
+      <Nav.Link as={Link} to="/event" style={submenuStyle(location.pathname === "/event")}>
+        <MdOutlineEvent size={18} />
+        Event
+      </Nav.Link>
+
+      <Nav.Link as={Link} to="/voucher" style={submenuStyle(location.pathname === "/voucher")}>
+        <MdOutlineCardGiftcard size={18} />
+        Voucher
+      </Nav.Link>
+
+      <Nav.Link as={Link} to="/blog" style={submenuStyle(location.pathname === "/blog")}>
+        <MdOutlineArticle size={18} />
+        Blog
+      </Nav.Link>
+    </div>
+  )}
+</div>
+
       </Nav>
 
       <div style={{ marginTop: "auto" }}>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -32,97 +32,168 @@ import {
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 
-
-const users = [
+// ===========================
+// Default Users (FIX: sebelumnya variabel ini dipakai di UserManagement()
+// tapi tidak pernah didefinisikan / di-import, sehingga menyebabkan
+// error "defaultUsers is not defined")
+// ===========================
+const defaultUsers = [
   {
     id: 1,
-    title: "Nn",
-    titleFull: "Nona",
-    nama: "Jane Mellona",
-    email: "janemellona@gmail.com",
-    phone: "(+62) 812-1001-1100",
+    title: "Mr.",
+    titleFull: "Mister",
+    nama: "Ahmad Fauzi",
+    phone: "081234567890",
+    email: "ahmad.fauzi@example.com",
+    tanggal: "12 Januari 1995",
     role: "Admin",
     status: "Active",
-    tanggal: "01-01-2001",
   },
   {
     id: 2,
-    title: "Tn",
-    titleFull: "Tuan",
-    nama: "Alfin Aldiansyah R",
-    email: "alfindialdiansyahr@gmail.com",
-    phone: "(+62) 812-1001-1101",
+    title: "Mrs.",
+    titleFull: "Misess",
+    nama: "Siti Rahayu",
+    phone: "081298765432",
+    email: "siti.rahayu@example.com",
+    tanggal: "5 Mei 1998",
     role: "Member",
     status: "Active",
-    tanggal: "02-01-2001",
   },
   {
     id: 3,
-    title: "Ny",
-    titleFull: "Nyonya",
-    nama: "Dhea Umi Amalia",
-    email: "dheaumiamalia@gmail.com",
-    phone: "(+62) 812-1001-1102",
+    title: "Mr.",
+    titleFull: "Mister",
+    nama: "Budi Santoso",
+    phone: "081345678901",
+    email: "budi.santoso@example.com",
+    tanggal: "20 Agustus 1990",
     role: "Member",
     status: "Non Active",
-    tanggal: "03-01-2001",
   },
 ];
 
+// Simpan data default ke localStorage hanya sekali
+if (!localStorage.getItem("users")) {
+  localStorage.setItem("users", JSON.stringify(defaultUsers));
+}
+
 function UserManagement() {
-
-  const [calendarMode, setCalendarMode] = useState("filter");
-
-  const formatDate = (date) =>
-  date.toLocaleDateString("id-ID", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-
-  const [startDate, setStartDate] = useState(new Date(2023, 3, 4));
-const [endDate, setEndDate] = useState(new Date(2023, 6, 16));
-
-const [showReActive, setShowReActive] = useState(false);
-const [selectedReActive, setSelectedReActive] = useState(null);
-
-  const [showCalendar, setShowCalendar] = useState(false);
-
-const [dateRange, setDateRange] = useState(
-  "4 April 2023 - 16 Juli 2023"
-);
-
-  const [dataUsers, setDataUsers] = useState(users);
-
-  const [showDelete,setShowDelete]=useState(false);
-
-  const [selectedDelete,setSelectedDelete]=useState(null);
-
-const [reason,setReason]=useState("");
 
   const navigate = useNavigate();
 
-  const [search, setSearch] = useState("");
-  const [tab, setTab] = useState("active");
+  // ===========================
+  // Pagination
+  // ===========================
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
+  // ===========================
+  // Calendar
+  // ===========================
+  const [calendarMode, setCalendarMode] = useState("filter");
+
+  const formatDate = (date) =>
+    date.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
+  const [startDate, setStartDate] = useState(new Date(2023, 3, 4));
+  const [endDate, setEndDate] = useState(new Date(2023, 6, 16));
+
+  const [showCalendar, setShowCalendar] = useState(false);
+
+  const [dateRange, setDateRange] = useState(
+    "4 April 2023 - 16 Juli 2023"
+  );
+
+  // ===========================
+  // Re Active
+  // ===========================
+  const [showReActive, setShowReActive] = useState(false);
+  const [selectedReActive, setSelectedReActive] = useState(null);
+
+// ===========================
+// Users
+// ===========================
+const [dataUsers, setDataUsers] = useState(() => {
+  return JSON.parse(localStorage.getItem("users")) || [];
+});
+
+useEffect(() => {
+  localStorage.setItem("users", JSON.stringify(dataUsers));
+}, [dataUsers]);
+
+  // ===========================
+  // Delete
+  // ===========================
+  const [showDelete, setShowDelete] = useState(false);
+  const [selectedDelete, setSelectedDelete] = useState(null);
+  const [reason, setReason] = useState("");
+
+  // ===========================
+  // Search
+  // ===========================
+  const [search, setSearch] = useState("");
+
+  // ===========================
+  // Active / Non Active Tab
+  // ===========================
+  const [tab, setTab] = useState(() => {
+    return localStorage.getItem("userTab") || "active";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("userTab", tab);
+  }, [tab]);
+
+  // ===========================
+  // Detail
+  // ===========================
   const [showDetail, setShowDetail] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
   const isSearching = search.trim() !== "";
-  
-  const filteredUsers = dataUsers.filter((item) => {
-    const cocokStatus =
-  (tab === "active" && item.status === "Active") ||
-  (tab === "nonactive" && item.status === "Non Active");
 
-    const cocokSearch =
-      item.nama.toLowerCase().includes(search.toLowerCase()) ||
-      item.email.toLowerCase().includes(search.toLowerCase());
+  // ===========================
+  // Filter Data
+  // ===========================
+  const filteredUsers = dataUsers
+    .filter((item) =>
+      tab === "active"
+        ? item.status === "Active"
+        : item.status === "Non Active"
+    )
+    .filter((item) => {
+      const keyword = search.toLowerCase();
 
-    return cocokStatus && cocokSearch;
-  });
-console.log("TAB =", tab);
-  console.log("TAB =", tab);
+      return (
+        item.nama.toLowerCase().includes(keyword) ||
+        item.email.toLowerCase().includes(keyword) ||
+        item.phone.toLowerCase().includes(keyword)
+      );
+    });
+
+  // ===========================
+  // Pagination
+  // ===========================
+  const totalPages = Math.ceil(
+    filteredUsers.length / itemsPerPage
+  );
+
+  const currentUsers = filteredUsers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [tab, search]);
+
+  console.log(tab);
+
   return (
     <Container fluid>
       {/* Header */}
@@ -185,7 +256,10 @@ console.log("TAB =", tab);
                 color: "#1F2937",
               }}
             >
-              {dataUsers.length}
+
+{dataUsers.filter(
+item=>item.status==="Active"
+).length}
             </h2>
           </div>
 
@@ -349,7 +423,9 @@ Active
  style={{
     borderLeft:"none",
     height:52,
-    fontSize:14,
+    fontSize:16,
+padding:"22px 18px",
+fontWeight:500,
     boxShadow:"none",
     borderColor:"#E2E8F0"
 }}
@@ -408,18 +484,21 @@ boxShadow:"0 6px 18px rgba(37,56,200,.25)"
 </Row>
 
           {/* Table */}
-         <Table
+<Table
 responsive
+hover
 className="align-middle"
 style={{
-marginBottom:0
+  marginBottom: 0,
+  fontSize: 16,
 }}
 >
-<thead
-style={{
-background:"#F8FAFC"
-}}
->
+  <thead
+    style={{
+      background: "#F8FAFC",
+    }}
+  >
+  
   <tr
 style={{
 transition:".2s"
@@ -434,8 +513,8 @@ e.currentTarget.style.background="#fff";
 
  <th
 style={{
-padding:"18px 16px",
-fontSize:12,
+fontSize:15,
+padding:"22px 18px",
 fontWeight:600,
 color:"#64748B",
 borderBottom:"1px solid #E2E8F0",
@@ -524,7 +603,7 @@ NO.
 
             <tbody>
   {filteredUsers.length > 0 ? (
-    filteredUsers.map((item, index) => (
+    currentUsers.map((item, index) => (
       <tr key={item.id}>
         <td
           style={{
@@ -614,7 +693,7 @@ NO.
           <div
             style={{
               display: "flex",
-              gap: 16,
+              gap:24,
               justifyContent: "center",
             }}
           >
@@ -626,7 +705,10 @@ NO.
                 }}
                 style={{ cursor: "pointer" }}
               >
-                <FaEye color="#6B7280" />
+<FaEye
+    size={20}
+    color="#6B7280"
+/>
               </span>
             ) : (
               <span
@@ -636,9 +718,9 @@ NO.
               >
          <FaArrowCircleUp
   style={{
-    cursor: "pointer",
-    color: "#6B7280",
-    fontSize: 15,
+fontSize:22,
+cursor:"pointer",
+color:"#2563EB",
     transition: ".2s",
   }}
   onMouseEnter={(e) => {
@@ -660,16 +742,16 @@ NO.
               size="sm"
               variant="light"
               onClick={() =>
-                navigate(`/user-management/edit/${item.id}`)
+                navigate(`/user-management/edit/${user.id}`)
               }
             >
-              <FaEdit
-                style={{
-                  cursor: "pointer",
-                  fontSize: 14,
-                  color: "#6B7280",
-                }}
-              />
+<FaEdit
+style={{
+fontSize:20,
+color:"#6B7280",
+cursor:"pointer"
+}}
+/>
             </span>
 
             <span
@@ -680,13 +762,13 @@ NO.
               size="sm"
               variant="light"
             >
-              <FaTrash
-                style={{
-                  cursor: "pointer",
-                  fontSize: 14,
-                  color: "#6B7280",
-                }}
-              />
+          <FaTrash
+style={{
+fontSize:20,
+color:"#EF4444",
+cursor:"pointer"
+}}
+/>
             </span>
           </div>
         </td>
@@ -749,28 +831,37 @@ NO.
 
 <Pagination>
 
-<Pagination.First/>
+<Pagination.First
+onClick={() => setCurrentPage(1)}
+disabled={currentPage === 1}
+/>
 
-<Pagination.Prev/>
+<Pagination.Prev
+onClick={() => setCurrentPage(currentPage - 1)}
+disabled={currentPage === 1}
+/>
 
-<Pagination.Item active>
-1
-</Pagination.Item>
+{[...Array(totalPages)].map((_, index) => (
+  <Pagination.Item
+    key={index}
+    active={currentPage === index + 1}
+    onClick={() => setCurrentPage(index + 1)}
+  >
+    {index + 1}
+  </Pagination.Item>
+))}
 
-<Pagination.Item>
-2
-</Pagination.Item>
+<Pagination.Next
+onClick={() => setCurrentPage(currentPage + 1)}
+disabled={currentPage === totalPages}
+/>
 
-<Pagination.Item>
-3
-</Pagination.Item>
-
-<Pagination.Next/>
-
-<Pagination.Last/>
+<Pagination.Last
+onClick={() => setCurrentPage(totalPages)}
+disabled={currentPage === totalPages}
+/>
 
 </Pagination>
-
 </div>
         </Card.Body>
       </Card>
@@ -1177,7 +1268,7 @@ size="xl"
             borderRadius:20,
             position:"relative"
         }}
-    >
+    >content://media/external/downloads/28179
 
         <h3
             style={{

@@ -7,6 +7,7 @@ import {
   Card,
   Form,
   Button,
+  InputGroup,
 } from "react-bootstrap";
 
 import {
@@ -19,10 +20,26 @@ import {
 
 import Swal from "sweetalert2";
 
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
-import "react-phone-input-2/lib/style.css";
+import { format } from "date-fns";
+
+import { useNavigate } from "react-router-dom";
 
 function AddUser() {
+  
+  // alertMessage
+  const [alertTitle, setAlertTitle] = useState("");
+const [alertDescription, setAlertDescription] = useState("");
+  
+  const [isPressed, setIsPressed] = useState(false);
+  
+  
+const [alertType, setAlertType] = useState("error");
+
+  const navigate = useNavigate();
+  
 
    // style input
   const inputStyle = {
@@ -59,14 +76,14 @@ function AddUser() {
 
    // tombol aktif / nonaktif
   const isFormValid =
-    title &&
-    nama &&
-    phone &&
-    email &&
-    tanggal &&
-    role &&
-    password &&
-    confirmPassword;
+  title !== "" &&
+  nama.trim() !== "" &&
+  phone.trim() !== "" &&
+  email.trim() !== "" &&
+  tanggal !== null &&
+  role !== "" &&
+  password !== "" &&
+  confirmPassword !== "";
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -144,41 +161,56 @@ function AddUser() {
 
     // jika gagal
     if (!valid) {
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
-      return;
-    }
+  setAlertType("error");
+
+  setAlertTitle("Ups, aktivitas Buat User Baru gagal.");
+
+  setAlertDescription(
+    "Pastikan memasukkan data yang benar. Coba lagi!"
+  );
+
+  setShowToast(true);
+
+  setTimeout(() => setShowToast(false), 3000);
+
+  return;
+}
 
     // simpan ke localStorage
     const newUser = {
-      id: Date.now(),
-      title,
-      nama,
-      phone: `(+62) ${phone}`,
-      email,
-      tanggal,
-      role,
-      status: "Active",
-    };
+  id: Date.now(),
+  title,
+  nama,
+  phone,
+  email,
+  tanggal: format(tanggal, "dd/MM/yyyy"),
+  role,
+  status: "Active",
+};
 
     const existing = JSON.parse(localStorage.getItem("users")) || [];
     existing.push(newUser);
     localStorage.setItem("users", JSON.stringify(existing));
 
-    Swal.fire({
-      icon: "success",
-      title: "Berhasil",
-      text: "User berhasil ditambahkan",
-      timer: 1500,
-      showConfirmButton: false,
-    });
+setAlertType("success");
+
+setAlertTitle("Berhasil!");
+
+setAlertDescription("Data user berhasil disimpan.");
+
+setShowToast(true);
+
+setTimeout(() => {
+  setShowToast(false);
+  navigate("/user-management");
+}, 2000);
 
     // reset form
     setTitle("");
     setNama("");
     setPhone("");
     setEmail("");
-    setTanggal("");
+    setTanggal(null);
     setRole("");
     setPassword("");
     setConfirmPassword("");
@@ -194,45 +226,81 @@ return (
       }}
     >
       {/* Toast Alert */}
-      {showToast && (
-        <div
-          style={{
-            position: "fixed",
-            top: "20px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: "#FFF2F2",
-            border: "1px solid #FFD4D4",
-            color: "#D93025",
-            borderRadius: "12px",
-            padding: "12px 18px",
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            zIndex: 9999,
-            boxShadow: "0 8px 18px rgba(0,0,0,.08)",
-          }}
-        >
-          <FaExclamationTriangle />
-          <div>
-            <div style={{ fontWeight: 600, fontSize: 13 }}>
-              Ups, aktivitas Buat User Baru gagal.
-            </div>
-            <div style={{ fontSize: 12, color: "#777" }}>
-              Pastikan seluruh data sudah benar.
-            </div>
-          </div>
+{showToast && (
+  <div
+    style={{
+      position: "fixed",
+      top: "20px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      
+      background:
+  alertType === "success"
+    ? "#ECFDF3"
+    : alertType === "warning"
+    ? "#FFF8E6"
+    : "#FFF2F2",
 
-        <FaTimes
-            style={{
-              marginLeft: 10,
-              cursor: "pointer",
-              color: "#999",
-            }}
-            onClick={() => setShowToast(false)}
-          />
-        </div>
-      )}
+border:
+  alertType === "success"
+    ? "1px solid #ABEFC6"
+    : alertType === "warning"
+    ? "1px solid #FACC15"
+    : "1px solid #FFD4D4",
+
+color:
+  alertType === "success"
+    ? "#027A48"
+    : alertType === "warning"
+    ? "#B45309"
+    : "#D93025",
+          
+      borderRadius: "12px",
+      padding: "12px 18px",
+      display: "flex",
+      alignItems: "center",
+      gap: "10px",
+      zIndex: 9999,
+    }}
+  >
+<FaExclamationTriangle
+  color={
+    alertType === "success"
+      ? "#16A34A"
+      : alertType === "warning"
+      ? "#D97706"
+      : "#DC2626"
+  }
+/>
+
+<div style={{ flex: 1 }}>
+  <div
+    style={{
+      fontWeight: 700,
+      fontSize: "15px",
+      marginBottom: "3px",
+    }}
+  >
+    {alertTitle}
+  </div>
+
+  <div
+    style={{
+      fontSize: "13px",
+      opacity: 0.9,
+      lineHeight: "18px",
+    }}
+  >
+    {alertDescription}
+  </div>
+</div>
+
+    <FaTimes
+      onClick={() => setShowToast(false)}
+      style={{ cursor: "pointer", marginLeft: 10 }}
+    />
+  </div>
+)}
 
     <Row className="justify-content-center">
         <Col xs={11} sm={9} md={7} lg={4} xl={4}>
@@ -252,7 +320,7 @@ return (
                 Buat User
               </h3>
 
-            <Form onSubmit={handleSubmit}>
+            <Form onSubmit>
               {/* Title */}
 
               <Form.Group className="mb-3">
@@ -344,43 +412,46 @@ Nama Lengkap
 )}
               </Form.Group>
 
-             {/* No. Handphone */}
+{/* No. Handphone */}
 <Form.Group className="mb-3">
   <Form.Label
     style={{
-      fontSize: "12px",
+      fontSize: "13px",
       fontWeight: "600",
       marginBottom: "6px",
-      color: "#343A40",
     }}
   >
     No. Handphone
   </Form.Label>
 
-  <div style={{ position: "relative" }}>
+  <InputGroup>
+    <InputGroup.Text
+      style={{
+        background: "#fff",
+        border: "1px solid #D9DDE7",
+        borderRadius: "12px 0 0 12px",
+        minWidth: "90px",
+        justifyContent: "center",
+        fontWeight: "500",
+      }}
+    >
+      🇮🇩 +62
+    </InputGroup.Text>
+
     <Form.Control
       type="tel"
-      placeholder="Contoh: 0812 3456 7890"
       value={phone}
       onChange={(e) => setPhone(e.target.value)}
-      style={inputStyle}
+      placeholder="Masukkan Nomor"
+      style={{
+        height: "48px",
+        borderRadius: "0 12px 12px 0",
+        border: "1px solid #D9DDE7",
+        borderLeft: "0",
+        boxShadow: "none",
+      }}
     />
-
-    {phone && (
-      <FaTimes
-        onClick={() => setPhone("")}
-        style={{
-          position: "absolute",
-          right: "15px",
-          top: "50%",
-          transform: "translateY(-50%)",
-          cursor: "pointer",
-          color: "#B6B6B6",
-          fontSize: "14px",
-        }}
-      />
-    )}
-  </div>
+  </InputGroup>
 
   {phoneError && (
     <div
@@ -443,57 +514,55 @@ Nama Lengkap
     </div>
   )}
 </Form.Group>
-              {/* Tanggal */}
-
-              <Form.Group className="mb-2">
-                <Form.Label>Tanggal Lahir</Form.Label>
-
-                <div style={{ position:"relative" }}>
-
-<Form.Control
-
-type="date"
-
-value={tanggal}
-
-onChange={(e)=>setTanggal(e.target.value)}
-
-style={inputStyle}
-
-/>
-
-<FaCalendarAlt
-
-style={{
-
-position:"absolute",
-
-right:"15px",
-
-top:"50%",
-
-transform:"translateY(-50%)",
-
-color:"#8A8A8A"
-
-}}
-
-/>
-
-</div>
-{tanggalError && (
-  <div
+<Form.Group className="mb-3">
+  <Form.Label
     style={{
-      color: "#E53935",
-      fontSize: "12px",
-      marginTop: "5px",
+      fontSize: "13px",
+      fontWeight: "600",
+      marginBottom: "6px",
     }}
   >
-    {tanggalError}
-  </div>
-)}
-              </Form.Group>
+    Tanggal Lahir
+  </Form.Label>
 
+  <div style={{ position: "relative", width: "100%" }}>
+    <DatePicker
+      selected={tanggal}
+      onChange={(date) => setTanggal(date)}
+      dateFormat="dd/MM/yyyy"
+      placeholderText="dd/mm/yyyy"
+      showMonthDropdown
+      showYearDropdown
+      dropdownMode="select"
+      className="tanggal-input"
+    />
+
+    <FaCalendarAlt
+      style={{
+        position: "absolute",
+        right: "18px",
+        top: "50%",
+        transform: "translateY(-50%)",
+        color: "#8B95A5",
+        fontSize: "18px",
+        pointerEvents: "none",
+      }}
+    />
+  </div>
+
+  {tanggalError && (
+    <div
+      style={{
+        color: "#E53935",
+        fontSize: "12px",
+        marginTop: "5px",
+      }}
+    >
+      {tanggalError}
+    </div>
+  )}
+
+</Form.Group>
               {/* Roles */}
 
               <Form.Group className="mb-4">
@@ -643,23 +712,69 @@ borderBottom:"1px solid #F0F0F0"
                   </div>
                 )}
               </Form.Group>
-
-             <div className="text-center mt-4">
-                  <Button
-type="submit"
-style={{
-width:"100%",
-height:"54px",
-fontSize:"16px",
-fontWeight:"700",
-borderRadius:"14px",
-background:isFormValid?"#2342C0":"#C7CCDE",
-border:"none"
-}}
+<div
+  className="d-flex gap-3 mt-4"
 >
-SIMPAN DATA
+<Button
+  type="button"
+  onClick={() => {
+    setAlertType("warning");
+
+    setAlertTitle("Pembuatan dibatalkan");
+
+    setAlertDescription(
+      "Data yang belum disimpan tidak akan tersimpan."
+    );
+
+    setShowToast(true);
+
+    setTimeout(() => {
+      setShowToast(false);
+      navigate("/user-management");
+    }, 2000);
+  }}
+  style={{
+    flex: 1,
+    height: "56px",
+    borderRadius: "14px",
+    border: "1px solid #CBD5E1",
+    background: "#F8FAFC",
+    color: "#475569",
+    fontWeight: 700,
+    fontSize: "16px",
+  }}
+>
+  BATAL
 </Button>
-                </div>
+
+<Button
+  type="submit"
+  disabled={!isFormValid}
+  onMouseDown={() => setIsPressed(true)}
+  onMouseUp={() => setIsPressed(false)}
+  onMouseLeave={() => setIsPressed(false)}
+  style={{
+    flex: 1,
+    height: "56px",
+    borderRadius: "18px",
+    border: "none",
+    backgroundColor: isFormValid ? "#2438C8" : "#C8D0F5",
+    color: "#FFFFFF",
+    fontWeight: "700",
+    fontSize: "16px",
+    cursor: isFormValid ? "pointer" : "not-allowed",
+    transition: "all .2s ease",
+    transform: isPressed ? "scale(0.97)" : "scale(1)",
+    boxShadow: isFormValid
+      ? "0 8px 20px rgba(36,56,200,.30)"
+      : "none",
+    opacity: isFormValid ? 1 : 0.7,
+  }}
+>
+  SIMPAN DATA
+</Button>
+</div>
+
             </Form>
           </Card.Body>
         </Card>
