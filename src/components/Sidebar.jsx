@@ -13,7 +13,6 @@ import {
   MdKeyboardArrowDown,
   MdKeyboardArrowRight,
   MdLogout,
-  MdOutlineCampaign,
   MdOutlineSchool,
   MdOutlineCardGiftcard,
   MdOutlineArticle,
@@ -29,7 +28,9 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 
 function Sidebar() {
   
-  const [openMaster, setOpenMaster] = useState(true);
+  const [openMaster, setOpenMaster] = useState(false);
+  const [openKelas, setOpenKelas] = useState(false);
+
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -64,8 +65,6 @@ function Sidebar() {
     };
   }, []);
 
-  const [openKelas, setOpenKelas] = useState(true);
-
   const logout = () => {
     Swal.fire({
       title: "Logout?",
@@ -97,35 +96,63 @@ function Sidebar() {
   const menuStyle = (active) => ({
   display: "flex",
   alignItems: "center",
-  gap: 12,
-  padding: "13px 16px",
-  borderRadius: 14,
-  marginBottom: 8,
-  color: "#fff",
-  background: active
-  ? "rgba(255,255,255,.15)"
-  : "transparent",
+  gap: 14,
 
-boxShadow: active
-  ? "0 8px 20px rgba(0,0,0,.15)"
-  : "none",
-  fontWeight: active ? "700" : "500",
-  transition: ".25s",
+  padding: "13px 16px",
+
+  marginBottom: 8,
+
+  borderRadius: 14,
+
+  color: active ? "#fff" : "#D9E1FF",
+
+  background: active
+    ? "rgba(255,255,255,.16)"
+    : "transparent",
+
+  fontWeight: active ? 700 : 500,
+
+  transition: "all .25s ease",
+
   textDecoration: "none",
+
+  border: active
+    ? "1px solid rgba(255,255,255,.18)"
+    : "1px solid transparent",
+
+  boxShadow: active
+    ? "0 12px 24px rgba(0,0,0,.18)"
+    : "none",
 });
 
-  const submenuStyle = (active) => ({
-  display: "flex",
-  alignItems: "center",
-  gap: 12,
-  padding: "10px 12px",
-  borderRadius: 10,
-  marginBottom: 5,
-  color: "#E6EAFD",
-  background: active ? "rgba(255,255,255,.10)" : "transparent",
-  textDecoration: "none",
-  fontSize: 14,
-  transition: ".25s",
+ const submenuStyle = (active) => ({
+
+display:"flex",
+
+alignItems:"center",
+
+gap:12,
+
+padding:"10px 14px",
+
+marginBottom:6,
+
+borderRadius:12,
+
+color:active?"#fff":"#D8DFFF",
+
+background:active
+
+?"rgba(255,255,255,.12)"
+
+:"transparent",
+
+fontSize:14,
+
+transition:"all .25s",
+
+textDecoration:"none",
+
 });
 
   return (
@@ -133,8 +160,8 @@ boxShadow: active
       style={{
         width: "clamp(250px,20vw,290px)",
         minHeight: "100vh",
-        background: "linear-gradient(180deg, #2F49C8 0%, #243BB8 100%)",
-        boxShadow: "6px 0 20px rgba(0,0,0,0.15)",
+        background: "linear-gradient(180deg,#2539A8 0%,#1E2B7A 100%)",
+        boxShadow: "10px 0 35px rgba(0,0,0,.18)",
         borderRight: "1px solid rgba(255,255,255,.08)",
         display: "flex",
         flexDirection: "column",
@@ -142,39 +169,60 @@ boxShadow: active
         color: "#fff",
       }}
     >
-     <div
+<div
   style={{
     display: "flex",
     alignItems: "center",
-    gap: 12,
-    marginBottom: 35,
-    paddingLeft: 5,
+    gap: 16,
+    padding: "0 8px",
+    marginBottom: 40,
+    minHeight: 56,
   }}
 >
   <img
     src={logo}
-    alt="logo"
+    alt="Logo"
     style={{
-      width: 48,
-      height: 48,
+      width: 38,
+      height: 38,
       objectFit: "contain",
-      background: "transparent",
-      border: "none",
+      flexShrink: 0,
+      display: "block",
     }}
   />
 
-  <h3
+  <div
     style={{
-      margin: 0,
-      color: "#fff",
-      fontWeight: "800",
-      letterSpacing: ".5px",
-      fontSize:"clamp(20px,2vw,26px)"
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
     }}
   >
-    DASHBOARD
-  </h3>
+    <span
+      style={{
+        fontSize: 24,
+        fontWeight: 800,
+        color: "#fff",
+        lineHeight: 1,
+        letterSpacing: ".4px",
+      }}
+    >
+      DASHBOARD
+    </span>
+
+    <span
+      style={{
+        fontSize: 11,
+        color: "rgba(255,255,255,.7)",
+        letterSpacing: "2px",
+        marginTop: 5,
+      }}
+    >
+      MANAGEMENT SYSTEM
+    </span>
+  </div>
 </div>
+
 
       <Nav className="flex-column">
         {/* Beranda */}
@@ -352,13 +400,24 @@ boxShadow: active
             alignItems: "center",
             justifyContent: "center",
             gap: 10,
+            marginBottom: 20,
+            boxShadow: "0 8px 18px rgba(0,0,0,.12)",
+            cursor: "pointer",
+            transition: ".25s",
           }}
         >
           <MdLogout size={18} />
           Keluar
         </button>
 
-        <div style={{ marginTop: 15 }}>
+        <div
+  style={{
+    background: "rgba(255,255,255,.08)",
+    borderRadius: 14,
+    padding: 12,
+    border: "1px solid rgba(255,255,255,.08)",
+  }}
+>
           <Dropdown drop="up">
             <Dropdown.Toggle
               variant="link"

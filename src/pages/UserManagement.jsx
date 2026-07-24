@@ -40,8 +40,8 @@ import "react-calendar/dist/Calendar.css";
 const defaultUsers = [
   {
     id: 1,
-    title: "Mr.",
-    titleFull: "Mister",
+    title: "Tn",
+    titleFull: "Tuan",
     nama: "Ahmad Fauzi",
     phone: "081234567890",
     email: "ahmad.fauzi@example.com",
@@ -51,8 +51,8 @@ const defaultUsers = [
   },
   {
     id: 2,
-    title: "Mrs.",
-    titleFull: "Misess",
+    title: "Ny",
+    titleFull: "Nyonya",
     nama: "Siti Rahayu",
     phone: "081298765432",
     email: "siti.rahayu@example.com",
@@ -62,8 +62,8 @@ const defaultUsers = [
   },
   {
     id: 3,
-    title: "Mr.",
-    titleFull: "Mister",
+    title: "Tn",
+    titleFull: "Tuan",
     nama: "Budi Santoso",
     phone: "081345678901",
     email: "budi.santoso@example.com",
@@ -72,11 +72,6 @@ const defaultUsers = [
     status: "Non Active",
   },
 ];
-
-// Simpan data default ke localStorage hanya sekali
-if (!localStorage.getItem("users")) {
-  localStorage.setItem("users", JSON.stringify(defaultUsers));
-}
 
 function UserManagement() {
 
@@ -118,12 +113,78 @@ function UserManagement() {
 // ===========================
 // Users
 // ===========================
-const [dataUsers, setDataUsers] = useState(() => {
-  return JSON.parse(localStorage.getItem("users")) || [];
-});
+const [dataUsers, setDataUsers] = useState([]);
 
+// Load data pertama kali + dengarkan perubahan localStorage
 useEffect(() => {
-  localStorage.setItem("users", JSON.stringify(dataUsers));
+  const loadUsers = () => {
+  let users = JSON.parse(localStorage.getItem("users"));
+
+  if (!users) {
+    users = defaultUsers;
+  }
+
+  users = users.map((user) => {
+    // jika title lama masih "Tuan"
+    if (user.title === "Tuan") {
+      return {
+        ...user,
+        title: "Tn",
+        titleFull: "Tuan",
+      };
+    }
+
+    if (user.title === "Nyonya") {
+      return {
+        ...user,
+        title: "Ny",
+        titleFull: "Nyonya",
+      };
+    }
+
+    if (user.title === "Nona") {
+      return {
+        ...user,
+        title: "Nn",
+        titleFull: "Nona",
+      };
+    }
+
+    return {
+      ...user,
+      titleFull:
+        user.titleFull ||
+        (user.title === "Tn"
+          ? "Tuan"
+          : user.title === "Ny"
+          ? "Nyonya"
+          : user.title === "Nn"
+          ? "Nona"
+          : "-"),
+    };
+  });
+
+  localStorage.setItem("users", JSON.stringify(users));
+  setDataUsers(users);
+};
+
+  loadUsers();
+
+  window.addEventListener("storage", loadUsers);
+
+  return () => {
+    window.removeEventListener("storage", loadUsers);
+  };
+}, []);
+
+// Simpan perubahan user
+useEffect(() => {
+  if (dataUsers.length === 0) return;
+
+  localStorage.setItem(
+    "users",
+    JSON.stringify(dataUsers)
+  );
 }, [dataUsers]);
 
   // ===========================
@@ -133,48 +194,55 @@ useEffect(() => {
   const [selectedDelete, setSelectedDelete] = useState(null);
   const [reason, setReason] = useState("");
 
-  // ===========================
-  // Search
-  // ===========================
-  const [search, setSearch] = useState("");
+ // ===========================
+// Search
+// ===========================
+const [search, setSearch] = useState("");
 
-  // ===========================
-  // Active / Non Active Tab
-  // ===========================
-  const [tab, setTab] = useState(() => {
-    return localStorage.getItem("userTab") || "active";
+// ===========================
+// Active / Non Active
+// ===========================
+const [tab, setTab] = useState(() => {
+  return localStorage.getItem("userTab") || "active";
+});
+
+useEffect(() => {
+  setCurrentPage(1);
+}, [tab, search]);
+
+console.log(tab);
+
+useEffect(() => {
+  localStorage.setItem("userTab", tab);
+}, [tab]);
+
+
+// ===========================
+// Detail
+// ===========================
+const [showDetail, setShowDetail] = useState(false);
+const [selectedUser, setSelectedUser] = useState(null);
+
+const isSearching = search.trim() !== "";
+
+// ===========================
+// Filter Data
+// ===========================
+const filteredUsers = dataUsers
+  .filter((item) =>
+    tab === "active"
+      ? item.status === "Active"
+      : item.status === "Non Active"
+  )
+  .filter((item) => {
+    const keyword = search.toLowerCase();
+
+    return (
+      item.nama.toLowerCase().includes(keyword) ||
+      item.email.toLowerCase().includes(keyword) ||
+      item.phone.toLowerCase().includes(keyword)
+    );
   });
-
-  useEffect(() => {
-    localStorage.setItem("userTab", tab);
-  }, [tab]);
-
-  // ===========================
-  // Detail
-  // ===========================
-  const [showDetail, setShowDetail] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-
-  const isSearching = search.trim() !== "";
-
-  // ===========================
-  // Filter Data
-  // ===========================
-  const filteredUsers = dataUsers
-    .filter((item) =>
-      tab === "active"
-        ? item.status === "Active"
-        : item.status === "Non Active"
-    )
-    .filter((item) => {
-      const keyword = search.toLowerCase();
-
-      return (
-        item.nama.toLowerCase().includes(keyword) ||
-        item.email.toLowerCase().includes(keyword) ||
-        item.phone.toLowerCase().includes(keyword)
-      );
-    });
 
   // ===========================
   // Pagination
@@ -183,16 +251,11 @@ useEffect(() => {
     filteredUsers.length / itemsPerPage
   );
 
-  const currentUsers = filteredUsers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+ const currentUsers = filteredUsers.slice(
+  (currentPage - 1) * itemsPerPage,
+  currentPage * itemsPerPage
+);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [tab, search]);
-
-  console.log(tab);
 
   return (
     <Container fluid>
@@ -626,7 +689,15 @@ NO.
             borderBottom: "1px solid #EEF2F7",
           }}
         >
-          {item.title}
+          {
+item.title === "Tuan"
+? "Tn"
+: item.title === "Nyonya"
+? "Ny"
+: item.title === "Nona"
+? "Nn"
+: item.title
+}
         </td>
 
         <td
@@ -742,7 +813,7 @@ color:"#2563EB",
               size="sm"
               variant="light"
               onClick={() =>
-                navigate(`/user-management/edit/${user.id}`)
+               navigate(`/user-management/edit/${item.id}`)
               }
             >
 <FaEdit
@@ -895,7 +966,16 @@ Detail Data User
 <Col xs={5}>Title</Col>
 
 <Col xs={7} className="text-end">
-{selectedUser?.titleFull}
+ {
+selectedUser?.titleFull ||
+(selectedUser?.title === "Tn"
+  ? "Tuan"
+  : selectedUser?.title === "Ny"
+  ? "Nyonya"
+  : selectedUser?.title === "Nn"
+  ? "Nona"
+  : selectedUser?.title)
+}
 </Col>
 
 </Row>
@@ -1268,7 +1348,7 @@ size="xl"
             borderRadius:20,
             position:"relative"
         }}
-    >content://media/external/downloads/28179
+    >
 
         <h3
             style={{

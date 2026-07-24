@@ -225,3 +225,18 @@ input[type="date"]:valid::-webkit-datetime-edit {
     color:#2342C0;
 }
 
+/* Sidebar */
+.sidebar-link{
+
+transition:.25s;
+
+}
+
+.sidebar-link:hover{
+
+transform:translateX(5px);
+
+background:rgba(255,255,255,.08);
+
+}
+

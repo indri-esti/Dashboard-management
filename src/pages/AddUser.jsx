@@ -18,8 +18,6 @@ import {
   FaEyeSlash
 } from "react-icons/fa";
 
-import Swal from "sweetalert2";
-
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -28,7 +26,10 @@ import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 
 function AddUser() {
-  
+
+  // Loading
+  const [loading, setLoading] = useState(false);
+
   // alertMessage
   const [alertTitle, setAlertTitle] = useState("");
 const [alertDescription, setAlertDescription] = useState("");
@@ -87,6 +88,7 @@ const [alertType, setAlertType] = useState("error");
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setLoading(true);
 
     // reset error
     setNamaError("");
@@ -161,20 +163,17 @@ const [alertType, setAlertType] = useState("error");
 
     // jika gagal
     if (!valid) {
-  setAlertType("error");
+      setAlertType("warning");
+      setAlertTitle("Periksa Kembali!");
+      setAlertDescription("Pastikan semua field sudah diisi dengan benar.");
+      setShowToast(true);
+       setLoading(false);
+      setTimeout(() => {
+  setShowToast(false);
+}, 3000);
 
-  setAlertTitle("Ups, aktivitas Buat User Baru gagal.");
-
-  setAlertDescription(
-    "Pastikan memasukkan data yang benar. Coba lagi!"
-  );
-
-  setShowToast(true);
-
-  setTimeout(() => setShowToast(false), 3000);
-
-  return;
-}
+      return;
+    }
 
     // simpan ke localStorage
     const newUser = {
@@ -188,22 +187,26 @@ const [alertType, setAlertType] = useState("error");
   status: "Active",
 };
 
-    const existing = JSON.parse(localStorage.getItem("users")) || [];
-    existing.push(newUser);
-    localStorage.setItem("users", JSON.stringify(existing));
+ // simpan ke localStorage
+const existing = JSON.parse(localStorage.getItem("users")) || [];
+existing.push(newUser);
+localStorage.setItem("users", JSON.stringify(existing));
 
+// Beritahu halaman lain bahwa data berubah
+window.dispatchEvent(new Event("storage"));
+
+// Alert Success
 setAlertType("success");
-
 setAlertTitle("Berhasil!");
-
-setAlertDescription("Data user berhasil disimpan.");
-
+setAlertDescription("User baru berhasil ditambahkan.");
 setShowToast(true);
 
+// pindah halaman setelah alert selesai
 setTimeout(() => {
+  setLoading(false);
   setShowToast(false);
   navigate("/user-management");
-}, 2000);
+}, 1800);
 
     // reset form
     setTitle("");
@@ -320,7 +323,7 @@ color:
                 Buat User
               </h3>
 
-            <Form onSubmit>
+            <Form onSubmit={handleSubmit}>
               {/* Title */}
 
               <Form.Group className="mb-3">
@@ -719,9 +722,7 @@ borderBottom:"1px solid #F0F0F0"
   type="button"
   onClick={() => {
     setAlertType("warning");
-
     setAlertTitle("Pembuatan dibatalkan");
-
     setAlertDescription(
       "Data yang belum disimpan tidak akan tersimpan."
     );
@@ -731,7 +732,7 @@ borderBottom:"1px solid #F0F0F0"
     setTimeout(() => {
       setShowToast(false);
       navigate("/user-management");
-    }, 2000);
+    }, 1800);
   }}
   style={{
     flex: 1,
@@ -742,6 +743,8 @@ borderBottom:"1px solid #F0F0F0"
     color: "#475569",
     fontWeight: 700,
     fontSize: "16px",
+    cursor: "pointer",
+    transition: "all .2s ease",
   }}
 >
   BATAL
@@ -771,7 +774,7 @@ borderBottom:"1px solid #F0F0F0"
     opacity: isFormValid ? 1 : 0.7,
   }}
 >
-  SIMPAN DATA
+ {loading ? "MENYIMPAN..." : "SIMPAN DATA"}
 </Button>
 </div>
 
