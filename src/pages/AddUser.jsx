@@ -7,7 +7,6 @@ import {
   Card,
   Form,
   Button,
-  InputGroup,
 } from "react-bootstrap";
 
 import {
@@ -25,6 +24,8 @@ import { format } from "date-fns";
 
 import { useNavigate } from "react-router-dom";
 
+import IndonesiaFlag from "../assets/id.svg";
+
 function AddUser() {
 
   // Loading
@@ -40,7 +41,7 @@ const [alertDescription, setAlertDescription] = useState("");
 const [alertType, setAlertType] = useState("error");
 
   const navigate = useNavigate();
-  
+
 
    // style input
   const inputStyle = {
@@ -180,7 +181,7 @@ const [alertType, setAlertType] = useState("error");
   id: Date.now(),
   title,
   nama,
-  phone,
+  phone: `${phone}`,
   email,
   tanggal: format(tanggal, "dd/MM/yyyy"),
   role,
@@ -228,92 +229,103 @@ return (
         padding: "40px 0",
       }}
     >
-      {/* Toast Alert */}
+    
+    <Row className="justify-content-center">
+        <Col xs={11} sm={9} md={7} lg={4} xl={4}>
+
+          {/* Toast Alert */}
 {showToast && (
   <div
     style={{
-      position: "fixed",
-      top: "20px",
-      left: "50%",
-      transform: "translateX(-50%)",
-      
+      width: "100%",
+      minHeight: "78px",
+      marginBottom: "24px", // jarak dengan card
       background:
-  alertType === "success"
-    ? "#ECFDF3"
-    : alertType === "warning"
-    ? "#FFF8E6"
-    : "#FFF2F2",
+        alertType === "success"
+          ? "#ECFDF3"
+          : alertType === "warning"
+          ? "#FFF8E6"
+          : "#FFF2F2",
 
-border:
-  alertType === "success"
-    ? "1px solid #ABEFC6"
-    : alertType === "warning"
-    ? "1px solid #FACC15"
-    : "1px solid #FFD4D4",
+      border:
+        alertType === "success"
+          ? "1px solid #ABEFC6"
+          : alertType === "warning"
+          ? "1px solid #FACC15"
+          : "1px solid #FECACA",
 
-color:
-  alertType === "success"
-    ? "#027A48"
-    : alertType === "warning"
-    ? "#B45309"
-    : "#D93025",
-          
-      borderRadius: "12px",
-      padding: "12px 18px",
+      borderRadius: "16px",
+      padding: "16px 22px",
+
       display: "flex",
       alignItems: "center",
-      gap: "10px",
-      zIndex: 9999,
-    }}
-  >
-<FaExclamationTriangle
-  color={
-    alertType === "success"
-      ? "#16A34A"
-      : alertType === "warning"
-      ? "#D97706"
-      : "#DC2626"
-  }
-/>
+      gap: "14px",
 
-<div style={{ flex: 1 }}>
-  <div
-    style={{
-      fontWeight: 700,
-      fontSize: "15px",
-      marginBottom: "3px",
+      boxShadow: "0 8px 24px rgba(0,0,0,.08)",
     }}
   >
-    {alertTitle}
-  </div>
+    <FaExclamationTriangle
+      color={
+        alertType === "success"
+          ? "#16A34A"
+          : alertType === "warning"
+          ? "#D97706"
+          : "#DC2626"
+      }
+      style={{
+        flexShrink: 0,
+        fontSize: "18px",
+        marginTop: "2px",
+      }}
+    />
 
-  <div
-    style={{
-      fontSize: "13px",
-      opacity: 0.9,
-      lineHeight: "18px",
-    }}
-  >
-    {alertDescription}
-  </div>
-</div>
+    <div style={{ flex: 1 }}>
+      <div
+        style={{
+          fontWeight: 700,
+          fontSize: "15px",
+          marginBottom: "4px",
+          color:
+            alertType === "success"
+              ? "#166534"
+              : alertType === "warning"
+              ? "#92400E"
+              : "#B42318",
+        }}
+      >
+        {alertTitle}
+      </div>
+
+      <div
+        style={{
+          fontSize: "13px",
+          lineHeight: "20px",
+          color: "#475467",
+        }}
+      >
+        {alertDescription}
+      </div>
+    </div>
 
     <FaTimes
       onClick={() => setShowToast(false)}
-      style={{ cursor: "pointer", marginLeft: 10 }}
+      style={{
+        cursor: "pointer",
+        color: "#98A2B3",
+        flexShrink: 0,
+      }}
     />
   </div>
 )}
 
-    <Row className="justify-content-center">
-        <Col xs={11} sm={9} md={7} lg={4} xl={4}>
-          <Card
-            style={{
-              borderRadius: "22px",
-              border: "none",
-              boxShadow: "0 8px 30px rgba(0,0,0,.08)",
-            }}
-          >
+  <Card
+  style={{
+    marginTop: "8px",
+    borderRadius: "22px",
+    border: "none",
+    boxShadow: "0 8px 30px rgba(0,0,0,.08)",
+  }}
+>
             <Card.Body style={{ padding: "28px 24px" }}>
       
              <h3
@@ -420,41 +432,105 @@ Nama Lengkap
   <Form.Label
     style={{
       fontSize: "13px",
-      fontWeight: "600",
-      marginBottom: "6px",
+      fontWeight: 600,
+      color: "#344054",
+      marginBottom: "8px",
     }}
   >
     No. Handphone
   </Form.Label>
 
-  <InputGroup>
-    <InputGroup.Text
+  <div
+    style={{
+      display: "flex",
+      gap: "12px",
+      alignItems: "center",
+    }}
+  >
+    {/* Kode Negara */}
+    <div
       style={{
-        background: "#fff",
-        border: "1px solid #D9DDE7",
-        borderRadius: "12px 0 0 12px",
-        minWidth: "90px",
+        width: "98px",
+        height: "52px",
+        borderRadius: "12px",
+        background: "#F6F8FC",
+        display: "flex",
+        flexDirection: "column",
         justifyContent: "center",
-        fontWeight: "500",
+        alignItems: "center",
+        flexShrink: 0,
       }}
     >
-      🇮🇩 +62
-    </InputGroup.Text>
+      <span
+        style={{
+          fontSize: "11px",
+          color: "#667085",
+          fontWeight: 500,
+          marginBottom: "4px",
+        }}
+      >
+        Kode Negara
+      </span>
 
-    <Form.Control
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "7px",
+        }}
+      >
+        <img
+          src={IndonesiaFlag}
+          alt="Indonesia"
+          style={{
+            width: "30px",
+            height: "20px",
+            objectFit: "cover",
+            borderRadius: "2px",
+            display: "block",
+            boxShadow: "0 1px 2px rgba(0,0,0,.08)",
+          }}
+        />
+
+        <span
+          style={{
+            fontSize: "14px",
+            fontWeight: 600,
+            color: "#344054",
+          }}
+        >
+          +62
+        </span>
+      </div>
+    </div>
+
+    {/* Input */}
+    <input
       type="tel"
+      placeholder="Cth : 812-xxxx-xxxx"
       value={phone}
-      onChange={(e) => setPhone(e.target.value)}
-      placeholder="Masukkan Nomor"
+      onChange={(e) => {
+        let value = e.target.value.replace(/\D/g, "");
+
+        if (value.startsWith("0")) {
+          value = value.substring(1);
+        }
+
+        setPhone(value);
+      }}
       style={{
-        height: "48px",
-        borderRadius: "0 12px 12px 0",
-        border: "1px solid #D9DDE7",
-        borderLeft: "0",
-        boxShadow: "none",
+        flex: 1,
+        height: "52px",
+        border: "1px solid #D0D5DD",
+        borderRadius: "12px",
+        padding: "0 24px",
+        fontSize: "14px",
+        color: "#344054",
+        outline: "none",
+        background: "#FFFFFF",
       }}
     />
-  </InputGroup>
+  </div>
 
   {phoneError && (
     <div

@@ -7,7 +7,6 @@ import {
   Card,
   Form,
   Button,
-  InputGroup,
 } from "react-bootstrap";
 
 import {
@@ -26,6 +25,9 @@ import "react-datepicker/dist/react-datepicker.css";
 import { format, parse } from "date-fns";
 
 import { useNavigate, useParams } from "react-router-dom";
+
+import IndonesiaFlag from "../assets/id.svg";
+
 
 function EditUser() {
   const navigate = useNavigate();
@@ -83,36 +85,46 @@ function EditUser() {
   const [confirmError, setConfirmError] = useState("");
 
   // ambil data user existing dari localStorage berdasarkan id di url
-  useEffect(() => {
-    const existing = JSON.parse(localStorage.getItem("users")) || [];
-    
-    const found = existing.find((u) => String(u.id) === String(id));
-    
-console.log("ID URL:", id);
-console.log("Existing:", existing);
-console.log("Found:", found);
-console.log("ID dari URL:", id);
-console.log("Data users:", existing);
-console.log("Data ditemukan:", found);
+useEffect(() => {
+  const existing = JSON.parse(localStorage.getItem("users")) || [];
 
-    if (found) {
-      setTitle(found.title || "");
-      setNama(found.nama || "");
-      setPhone(found.phone || "");
-      setEmail(found.email || "");
-      setRole(found.role || "");
-      setStatus(found.status || "Active");
-      setAlasanNonActive(found.alasanNonActive || "");
+  const found = existing.find((u) => String(u.id) === String(id));
 
-      if (found.tanggal) {
-  if (found.tanggal.includes("/")) {
-    setTanggal(parse(found.tanggal, "dd/MM/yyyy", new Date()));
-  } else {
-    setTanggal(new Date(found.tanggal));
-  }
-}
+  console.log("ID URL:", id);
+  console.log("Existing:", existing);
+  console.log("Found:", found);
+
+  if (found) {
+    let savedTitle = found.titleFull || found.title || "";
+
+    if (savedTitle === "Tn") savedTitle = "Tuan";
+    if (savedTitle === "Ny") savedTitle = "Nyonya";
+    if (savedTitle === "Nn") savedTitle = "Nona";
+
+    setTitle(savedTitle);
+
+    setNama(found.nama || "");
+    setPhone(found.phone || "");
+    setEmail(found.email || "");
+    setRole(found.role || "");
+    setStatus(found.status || "Active");
+    setAlasanNonActive(found.alasanNonActive || "");
+
+    if (found.tanggal) {
+      try {
+        if (found.tanggal.includes("/")) {
+          setTanggal(
+            parse(found.tanggal, "dd/MM/yyyy", new Date())
+          );
+        } else {
+          setTanggal(new Date(found.tanggal));
+        }
+      } catch {
+        setTanggal(null);
+      }
     }
-  }, [id]);
+  }
+}, [id]);
 
   // tombol aktif / nonaktif
   const isFormValid =
@@ -125,127 +137,133 @@ console.log("Data ditemukan:", found);
     (status !== "Non Active" || alasanNonActive.trim() !== "") &&
     (!resetPassword || (password !== "" && confirmPassword !== ""));
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+ const handleSubmit = (e) => {
+  e.preventDefault();
 
-    setShowBanner(false);
+  setShowBanner(false);
 
-    // reset error
-    setNamaError("");
-    setPhoneError("");
-    setEmailError("");
-    setTanggalError("");
-    setRoleError("");
-    setAlasanError("");
-    setPasswordError("");
-    setConfirmError("");
+  setNamaError("");
+  setPhoneError("");
+  setEmailError("");
+  setTanggalError("");
+  setRoleError("");
+  setAlasanError("");
+  setPasswordError("");
+  setConfirmError("");
 
-    let valid = true;
+  let valid = true;
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const passRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
 
-    // nama
-    if (!nama.trim()) {
-      setNamaError("Nama lengkap wajib diisi");
+  if (!nama.trim()) {
+    setNamaError("Nama lengkap wajib diisi");
+    valid = false;
+  }
+
+  if (!phone.trim()) {
+    setPhoneError("Nomor handphone wajib diisi");
+    valid = false;
+  } else if (phone.replace(/\D/g, "").length < 10) {
+    setPhoneError("Minimal terdiri dari 10 angka");
+    valid = false;
+  }
+
+  if (!email.trim()) {
+    setEmailError("Email wajib diisi");
+    valid = false;
+  } else if (!emailRegex.test(email)) {
+    setEmailError("Masukkan email yang valid");
+    valid = false;
+  }
+
+  if (!tanggal) {
+    setTanggalError("Tanggal lahir wajib diisi");
+    valid = false;
+  }
+
+  if (!role) {
+    setRoleError("Pilih role");
+    valid = false;
+  }
+
+  if (status === "Non Active" && !alasanNonActive.trim()) {
+    setAlasanError("Alasan non active wajib diisi");
+    valid = false;
+  }
+
+  if (resetPassword) {
+    if (!password) {
+      setPasswordError("Password wajib diisi");
+      valid = false;
+    } else if (!passRegex.test(password)) {
+      setPasswordError(
+        "Min 8 karakter, kombinasi huruf besar-kecil, angka & karakter khusus"
+      );
       valid = false;
     }
 
-    // phone
-    if (!phone.trim()) {
-      setPhoneError("Nomor handphone wajib diisi");
+    if (!confirmPassword) {
+      setConfirmError("Konfirmasi password wajib diisi");
       valid = false;
-    } else if (phone.replace(/\D/g, "").length < 10) {
-      setPhoneError("Minimal terdiri dari 10 angka");
-      valid = false;
-    }
-
-    // email
-    if (!email.trim()) {
-      setEmailError("Email wajib diisi");
-      valid = false;
-    } else if (!emailRegex.test(email)) {
-      setEmailError("Masukkan email yang valid");
+    } else if (password !== confirmPassword) {
+      setConfirmError("Kata sandi tidak cocok");
       valid = false;
     }
+  }
 
-    // tanggal
-    if (!tanggal) {
-      setTanggalError("Tanggal lahir wajib diisi");
-      valid = false;
+  if (!valid) {
+    setShowBanner(true);
+    return;
+  }
+
+  // ubah title menjadi singkatan untuk tabel
+  const shortTitle =
+    title === "Tuan"
+      ? "Tn"
+      : title === "Nyonya"
+      ? "Ny"
+      : "Nn";
+
+  const existing =
+    JSON.parse(localStorage.getItem("users")) || [];
+
+  const updated = existing.map((u) => {
+    if (String(u.id) === String(id)) {
+      return {
+        ...u,
+        title: shortTitle,
+        titleFull: title,
+        nama,
+        phone,
+        email,
+        tanggal: format(tanggal, "dd/MM/yyyy"),
+        role,
+        status,
+        alasanNonActive:
+          status === "Non Active"
+            ? alasanNonActive
+            : "",
+        ...(resetPassword ? { password } : {}),
+      };
     }
 
-    // role
-    if (!role) {
-      setRoleError("Pilih role");
-      valid = false;
-    }
+    return u;
+  });
 
-    // alasan non active
-    if (status === "Non Active" && !alasanNonActive.trim()) {
-      setAlasanError("Alasan non active wajib diisi");
-      valid = false;
-    }
+  localStorage.setItem("users", JSON.stringify(updated));
 
-    // password (hanya divalidasi kalau reset password dicentang)
-    if (resetPassword) {
-      if (!password) {
-        setPasswordError("Password wajib diisi");
-        valid = false;
-      } else if (!passRegex.test(password)) {
-        setPasswordError(
-          "Min 8 karakter, kombinasi huruf besar-kecil, angka & karakter khusus"
-        );
-        valid = false;
-      }
+  setAlertType("success");
+  setAlertTitle("Berhasil!");
+  setAlertDescription("Data user berhasil diperbarui.");
+  setShowToast(true);
 
-      if (!confirmPassword) {
-        setConfirmError("Konfirmasi password wajib diisi");
-        valid = false;
-      } else if (password !== confirmPassword) {
-        setConfirmError("Kata sandi tidak cocok");
-        valid = false;
-      }
-    }
-
-    // jika gagal -> tampilkan banner merah persis seperti di figma
-    if (!valid) {
-      setShowBanner(true);
-      return;
-    }
-
-    // update ke localStorage
-    const existing = JSON.parse(localStorage.getItem("users")) || [];
-    const updated = existing.map((u) => {
-      if (String(u.id) === String(id)) {
-        return {
-          ...u,
-          title,
-          nama,
-          phone,
-          email,
-          tanggal: format(tanggal, "dd/MM/yyyy"),
-          role,
-          status,
-          alasanNonActive: status === "Non Active" ? alasanNonActive : "",
-          ...(resetPassword ? { password } : {}),
-        };
-      }
-      return u;
-    });
-
-    localStorage.setItem("users", JSON.stringify(updated));
-
-    setAlertType("success");
-    setAlertTitle("Berhasil!");
-    setAlertDescription("Data user berhasil diperbarui.");
-    setShowToast(true);
-
-    setTimeout(() => {
-      setShowToast(false);
-      navigate("/user-management");
-    }, 2000);
-  };
+  setTimeout(() => {
+    setShowToast(false);
+    navigate("/user-management");
+  }, 2000);
+};
 
   return (
     <Container
@@ -256,39 +274,44 @@ console.log("Data ditemukan:", found);
         padding: "40px 0",
       }}
     >
-      {/* Toast Alert (sukses / batal) */}
+
+      <Row className="justify-content-center">
+        <Col xs={11} sm={9} md={7} lg={4} xl={4}>
+
+         {/* Toast Alert (sukses / batal) */}
       {showToast && (
         <div
-          style={{
-            position: "fixed",
-            top: "20px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            background:
-              alertType === "success"
-                ? "#ECFDF3"
-                : alertType === "warning"
-                ? "#FFF8E6"
-                : "#FFF2F2",
-            border:
-              alertType === "success"
-                ? "1px solid #ABEFC6"
-                : alertType === "warning"
-                ? "1px solid #FACC15"
-                : "1px solid #FFD4D4",
-            color:
-              alertType === "success"
-                ? "#027A48"
-                : alertType === "warning"
-                ? "#B45309"
-                : "#D93025",
-            borderRadius: "12px",
-            padding: "12px 18px",
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            zIndex: 9999,
-          }}
+         style={{
+  width: "720px",
+  maxWidth: "100%",
+  minHeight: "78px",
+  margin: "0 auto 24px",
+  background:
+    alertType === "success"
+      ? "#ECFDF3"
+      : alertType === "warning"
+      ? "#FFF8E6"
+      : "#FFF2F2",
+
+  border:
+    alertType === "success"
+      ? "1px solid #ABEFC6"
+      : alertType === "warning"
+      ? "1px solid #FACC15"
+      : "1px solid #FECACA",
+
+  borderRadius: "16px",
+
+  padding: "16px 22px",
+
+  display: "flex",
+
+  alignItems: "center",
+
+  gap: "14px",
+
+  boxShadow: "0 8px 24px rgba(0,0,0,.08)",
+}}
         >
           <FaExclamationTriangle
             color={
@@ -328,9 +351,6 @@ console.log("Data ditemukan:", found);
           />
         </div>
       )}
-
-      <Row className="justify-content-center">
-        <Col xs={11} sm={9} md={7} lg={4} xl={4}>
           {/* Banner error di atas card, sesuai screenshot ke-3 */}
           {showBanner && (
             <div
@@ -472,59 +492,106 @@ console.log("Data ditemukan:", found);
                   <Form.Label
                     style={{
                       fontSize: "13px",
-                      fontWeight: "600",
-                      marginBottom: "6px",
+                      fontWeight: 600,
+                      color: "#344054",
+                      marginBottom: "8px",
                     }}
                   >
                     No. Handphone
                   </Form.Label>
-
-                  <InputGroup>
-                    <InputGroup.Text
+                
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "12px",
+                      alignItems: "center",
+                    }}
+                  >
+                    {/* Kode Negara */}
+                    <div
                       style={{
-                        background: "#fff",
-                        border: "1px solid #D9DDE7",
-                        borderRadius: "12px 0 0 12px",
-                        minWidth: "90px",
+                        width: "98px",
+                        height: "52px",
+                        borderRadius: "12px",
+                        background: "#F6F8FC",
+                        display: "flex",
+                        flexDirection: "column",
                         justifyContent: "center",
-                        fontWeight: "500",
+                        alignItems: "center",
+                        flexShrink: 0,
                       }}
                     >
-                      🇮🇩 +62
-                    </InputGroup.Text>
-
-                    <div style={{ position: "relative", flex: 1 }}>
-                      <Form.Control
-                        type="tel"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        placeholder="Masukkan Nomor"
+                      <span
                         style={{
-                          height: "48px",
-                          borderRadius: "0 12px 12px 0",
-                          border: "1px solid #D9DDE7",
-                          borderLeft: "0",
-                          boxShadow: "none",
-                          width: "100%",
+                          fontSize: "11px",
+                          color: "#667085",
+                          fontWeight: 500,
+                          marginBottom: "4px",
                         }}
-                      />
-
-                      {phone && (
-                        <FaTimes
-                          onClick={() => setPhone("")}
+                      >
+                        Kode Negara
+                      </span>
+                
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "7px",
+                        }}
+                      >
+                        <img
+                          src={IndonesiaFlag}
+                          alt="Indonesia"
                           style={{
-                            position: "absolute",
-                            right: "15px",
-                            top: "50%",
-                            transform: "translateY(-50%)",
-                            cursor: "pointer",
-                            color: "#B6B6B6",
+                            width: "30px",
+                            height: "20px",
+                            objectFit: "cover",
+                            borderRadius: "2px",
+                            display: "block",
+                            boxShadow: "0 1px 2px rgba(0,0,0,.08)",
                           }}
                         />
-                      )}
+                
+                        <span
+                          style={{
+                            fontSize: "14px",
+                            fontWeight: 600,
+                            color: "#344054",
+                          }}
+                        >
+                          +62
+                        </span>
+                      </div>
                     </div>
-                  </InputGroup>
-
+                
+                    {/* Input */}
+                    <input
+                      type="tel"
+                      placeholder="Cth : 812-xxxx-xxxx"
+                      value={phone}
+                      onChange={(e) => {
+                        let value = e.target.value.replace(/\D/g, "");
+                
+                        if (value.startsWith("0")) {
+                          value = value.substring(1);
+                        }
+                
+                        setPhone(value);
+                      }}
+                      style={{
+                        flex: 1,
+                        height: "52px",
+                        border: "1px solid #D0D5DD",
+                        borderRadius: "12px",
+                        padding: "0 24px",
+                        fontSize: "14px",
+                        color: "#344054",
+                        outline: "none",
+                        background: "#FFFFFF",
+                      }}
+                    />
+                  </div>
+                
                   {phoneError && (
                     <div
                       style={{
@@ -537,6 +604,7 @@ console.log("Data ditemukan:", found);
                     </div>
                   )}
                 </Form.Group>
+                
 
                 {/* Email */}
                 <Form.Group className="mb-3">
@@ -674,76 +742,129 @@ console.log("Data ditemukan:", found);
                   )}
                 </Form.Group>
 
-                {/* Alasan Non Active - hanya muncul jika status user Non Active */}
-                {status === "Non Active" && (
-                  <Form.Group className="mb-3">
-                    <Form.Label
-                      style={{
-                        fontSize: "13px",
-                        fontWeight: "600",
-                        marginBottom: "6px",
-                      }}
-                    >
-                      Alasan Non Active
-                    </Form.Label>
+                {/* Status */}
+<Form.Group className="mb-3">
+  <Form.Label
+    style={{
+      fontSize: "13px",
+      fontWeight: "600",
+      marginBottom: "6px",
+    }}
+  >
+    Status
+  </Form.Label>
 
-                    <div style={{ position: "relative" }}>
-                      <Form.Control
-                        as="textarea"
-                        rows={3}
-                        maxLength={300}
-                        placeholder="Masukkan Alasan Non Active"
-                        value={alasanNonActive}
-                        onChange={(e) => setAlasanNonActive(e.target.value)}
-                        style={{
-                          fontSize: "15px",
-                          fontWeight: "500",
-                          padding: "12px 36px 12px 14px",
-                          borderRadius: "12px",
-                          border: "1px solid #D9DDE7",
-                          boxShadow: "none",
-                          resize: "none",
-                        }}
-                      />
+  <Form.Select
+    value={status}
+    onChange={(e) => {
+      setStatus(e.target.value);
 
-                      {alasanNonActive && (
-                        <FaTimes
-                          onClick={() => setAlasanNonActive("")}
-                          style={{
-                            position: "absolute",
-                            right: "15px",
-                            top: "14px",
-                            cursor: "pointer",
-                            color: "#B6B6B6",
-                          }}
-                        />
-                      )}
-                    </div>
+      // ketika kembali Active, kosongkan alasan
+      if (e.target.value === "Active") {
+        setAlasanNonActive("");
+        setAlasanError("");
+      }
+    }}
+    style={{
+      height: "48px",
+      borderRadius: "12px",
+      border: "1px solid #D9DDE7",
+      boxShadow: "none",
+      fontSize: "15px",
+      fontWeight: "500",
+    }}
+  >
+    <option value="Active">Active</option>
+    <option value="Non Active">Non Active</option>
+  </Form.Select>
+</Form.Group>
 
-                    <div
-                      style={{
-                        textAlign: "right",
-                        fontSize: "12px",
-                        color: "#9AA1AC",
-                        marginTop: "4px",
-                      }}
-                    >
-                      {alasanNonActive.length}/300
-                    </div>
+               {/* Alasan Non Active - hanya muncul jika status Non Active */}
+{status === "Non Active" && (
+  <Form.Group className="mb-3">
+    <Form.Label
+      style={{
+        fontSize: "13px",
+        fontWeight: "600",
+        marginBottom: "6px",
+      }}
+    >
+      Alasan Non Active
+    </Form.Label>
 
-                    {alasanError && (
-                      <div
-                        style={{
-                          color: "#E53935",
-                          fontSize: "12px",
-                          marginTop: "-10px",
-                        }}
-                      >
-                        {alasanError}
-                      </div>
-                    )}
-                  </Form.Group>
-                )}
+    <div style={{ position: "relative" }}>
+      <Form.Control
+        as="textarea"
+        rows={3}
+        maxLength={300}
+        placeholder="Masukkan Alasan Non Active"
+        value={alasanNonActive}
+        onChange={(e) => {
+          setAlasanNonActive(e.target.value);
+          setAlasanError("");
+        }}
+        style={{
+          fontSize: "15px",
+          fontWeight: "500",
+          padding: "12px 36px 12px 14px",
+          borderRadius: "12px",
+          border: alasanError
+            ? "1px solid #E53935"
+            : "1px solid #D9DDE7",
+          boxShadow: "none",
+          resize: "none",
+        }}
+      />
+
+      {alasanNonActive && (
+        <FaTimes
+          onClick={() => {
+            setAlasanNonActive("");
+            setAlasanError("");
+          }}
+          style={{
+            position: "absolute",
+            right: "15px",
+            top: "14px",
+            cursor: "pointer",
+            color: "#B6B6B6",
+          }}
+        />
+      )}
+    </div>
+
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginTop: "6px",
+        fontSize: "12px",
+      }}
+    >
+      <span style={{ color: "#667085" }}>
+        Masukkan alasan mengapa user dinonaktifkan.
+      </span>
+
+      <span style={{ color: "#98A2B3" }}>
+        {alasanNonActive.length}/300
+      </span>
+    </div>
+
+    {alasanError && (
+      <div
+        style={{
+          color: "#E53935",
+          fontSize: "12px",
+          marginTop: "6px",
+          fontWeight: "500",
+        }}
+      >
+        {alasanError}
+      </div>
+    )}
+  </Form.Group>
+)}
 
                 <div
                   style={{
