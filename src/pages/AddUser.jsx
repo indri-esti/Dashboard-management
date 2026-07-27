@@ -177,23 +177,34 @@ const [alertType, setAlertType] = useState("error");
     }
 
     // simpan ke localStorage
-    const newUser = {
+   const newUser = {
   id: Date.now(),
   title,
   nama,
-  phone: `${phone}`,
+  phone,
   email,
   tanggal: format(tanggal, "dd/MM/yyyy"),
   role,
   status: "Active",
+
+  createdAt: new Date().toISOString(),
 };
 
  // simpan ke localStorage
 const existing = JSON.parse(localStorage.getItem("users")) || [];
+
 existing.push(newUser);
+
+// WAJIB disimpan kembali ke localStorage
 localStorage.setItem("users", JSON.stringify(existing));
 
-// Beritahu halaman lain bahwa data berubah
+console.log("USER BARU");
+console.log(existing[existing.length - 1]);
+
+// Cek hasilnya
+console.log(JSON.parse(localStorage.getItem("users")));
+
+// Beri tahu UserManagement bahwa data berubah
 window.dispatchEvent(new Event("storage"));
 
 // Alert Success

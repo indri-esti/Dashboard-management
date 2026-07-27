@@ -5,6 +5,8 @@ import UserManagement from "./pages/UserManagement";
 import MainLayout from "./layouts/MainLayout";
 import AddUser from "./pages/AddUser";
 import EditUser from "./pages/EditUser";
+import Profile from "./pages/Profile";
+import Setting from "./pages/Setting";
 
 function App() {
   return (
@@ -37,6 +39,19 @@ function App() {
         path="/user-management/edit/:id"
         element={<EditUser />}
       />
+
+      {/* Halaman Profile */}
+      <Route
+        path="/profile"
+        element={<Profile />}
+      />
+
+      {/* Halaman Setting */}
+      <Route
+        path="/settings"
+        element={<Setting />}
+      />
+
     </Routes>
   );
 }

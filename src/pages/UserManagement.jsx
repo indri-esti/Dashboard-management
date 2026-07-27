@@ -32,46 +32,6 @@ import {
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 
-// ===========================
-// Default Users (FIX: sebelumnya variabel ini dipakai di UserManagement()
-// tapi tidak pernah didefinisikan / di-import, sehingga menyebabkan
-// error "defaultUsers is not defined")
-// ===========================
-const defaultUsers = [
-  {
-    id: 1,
-    title: "Tn",
-    titleFull: "Tuan",
-    nama: "Ahmad Fauzi",
-    phone: "081234567890",
-    email: "ahmad.fauzi@example.com",
-    tanggal: "12 Januari 1995",
-    role: "Admin",
-    status: "Active",
-  },
-  {
-    id: 2,
-    title: "Ny",
-    titleFull: "Nyonya",
-    nama: "Siti Rahayu",
-    phone: "081298765432",
-    email: "siti.rahayu@example.com",
-    tanggal: "5 Mei 1998",
-    role: "Member",
-    status: "Active",
-  },
-  {
-    id: 3,
-    title: "Tn",
-    titleFull: "Tuan",
-    nama: "Budi Santoso",
-    phone: "081345678901",
-    email: "budi.santoso@example.com",
-    tanggal: "20 Agustus 1990",
-    role: "Member",
-    status: "Non Active",
-  },
-];
 
 function UserManagement() {
 
@@ -115,43 +75,31 @@ function UserManagement() {
 // ===========================
 const [dataUsers, setDataUsers] = useState([]);
 
-// Load data pertama kali + dengarkan perubahan localStorage
+// ===========================
+// Load Users
+// ===========================
 useEffect(() => {
   const loadUsers = () => {
-  let users = JSON.parse(localStorage.getItem("users"));
+    let users = JSON.parse(localStorage.getItem("users"));
 
-  if (!users) {
-    users = defaultUsers;
-  }
-
-  users = users.map((user) => {
-    // jika title lama masih "Tuan"
-    if (user.title === "Tuan") {
-      return {
-        ...user,
-        title: "Tn",
-        titleFull: "Tuan",
-      };
+    // Jika belum ada data sama sekali
+    if (!Array.isArray(users)) {
+      users = [];
     }
 
-    if (user.title === "Nyonya") {
-      return {
-        ...user,
-        title: "Ny",
-        titleFull: "Nyonya",
-      };
-    }
-
-    if (user.title === "Nona") {
-      return {
-        ...user,
-        title: "Nn",
-        titleFull: "Nona",
-      };
-    }
-
-    return {
+    // Normalisasi data lama
+    users = users.map((user) => ({
       ...user,
+
+      title:
+        user.title === "Tuan"
+          ? "Tn"
+          : user.title === "Nyonya"
+          ? "Ny"
+          : user.title === "Nona"
+          ? "Nn"
+          : user.title,
+
       titleFull:
         user.titleFull ||
         (user.title === "Tn"
@@ -161,31 +109,36 @@ useEffect(() => {
           : user.title === "Nn"
           ? "Nona"
           : "-"),
-    };
-  });
 
-  localStorage.setItem("users", JSON.stringify(users));
-  setDataUsers(users);
-};
+      // Jika data lama belum punya createdAt,
+      // gunakan waktu sekarang lalu simpan
+      createdAt: user.createdAt || new Date().toISOString(),
+
+      status: user.status || "Active",
+    }));
+
+    localStorage.setItem("users", JSON.stringify(users));
+
+    const validUsers = users.filter(
+  (user) =>
+    user.nama?.trim() &&
+    user.phone?.trim() &&
+    user.email?.trim()
+);
+
+setDataUsers(validUsers);
+  };
 
   loadUsers();
 
   window.addEventListener("storage", loadUsers);
+  window.addEventListener("focus", loadUsers);
 
   return () => {
     window.removeEventListener("storage", loadUsers);
+    window.removeEventListener("focus", loadUsers);
   };
 }, []);
-
-// Simpan perubahan user
-useEffect(() => {
-  if (dataUsers.length === 0) return;
-
-  localStorage.setItem(
-    "users",
-    JSON.stringify(dataUsers)
-  );
-}, [dataUsers]);
 
   // ===========================
   // Delete
@@ -238,9 +191,9 @@ const filteredUsers = dataUsers
     const keyword = search.toLowerCase();
 
     return (
-      item.nama.toLowerCase().includes(keyword) ||
-      item.email.toLowerCase().includes(keyword) ||
-      item.phone.toLowerCase().includes(keyword)
+      (item.nama || "").toLowerCase().includes(keyword) ||
+      (item.email || "").toLowerCase().includes(keyword) ||
+      (item.phone || "").toLowerCase().includes(keyword)
     );
   });
 
@@ -255,6 +208,31 @@ const filteredUsers = dataUsers
   (currentPage - 1) * itemsPerPage,
   currentPage * itemsPerPage
 );
+
+// ===========================
+// Member Baru (90 Hari Terakhir)
+// ===========================
+
+const today = new Date();
+const ninetyDaysAgo = new Date();
+ninetyDaysAgo.setDate(today.getDate() - 90);
+
+const newMembers = dataUsers.filter((user) => {
+  const created = new Date(user.createdAt);
+
+  return (
+    !isNaN(created.getTime()) &&
+    created >= ninetyDaysAgo &&
+    created <= today
+  );
+});
+
+dataUsers.forEach((user) => {
+  console.log(user.nama, user.createdAt);
+});
+console.log(newMembers);
+
+const totalMembers = dataUsers.length;
 
 
   return (
@@ -320,9 +298,7 @@ const filteredUsers = dataUsers
               }}
             >
 
-{dataUsers.filter(
-item=>item.status==="Active"
-).length}
+{totalMembers}
             </h2>
           </div>
 
@@ -374,7 +350,7 @@ item=>item.status==="Active"
     />
   </div>
 
-  <h2>18</h2>
+  <h2>{newMembers.length}</h2>
 
   <small
     style={{
@@ -382,7 +358,19 @@ item=>item.status==="Active"
       fontSize: "12px",
     }}
   >
-    90 hari terakhir (4 April - 4 Juli 2023)
+    90 hari terakhir (
+  {ninetyDaysAgo.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })}
+  {" - "}
+  {today.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })}
+  )
   </small>
 </div>
 
@@ -665,9 +653,9 @@ NO.
 </thead>
 
             <tbody>
-  {filteredUsers.length > 0 ? (
+   {filteredUsers.length > 0 ? (
     currentUsers.map((item, index) => (
-      <tr key={item.id}>
+      <tr key={item.id ?? index}>
         <td
           style={{
             padding: "18px 16px",
@@ -912,13 +900,12 @@ onClick={() => setCurrentPage(currentPage - 1)}
 disabled={currentPage === 1}
 />
 
-{[...Array(totalPages)].map((_, index) => (
-  <Pagination.Item
-    key={index}
-    active={currentPage === index + 1}
-    onClick={() => setCurrentPage(index + 1)}
+{[...Array(totalPages)].map((_, i) => (
+  <Pagination.Item key={i}
+    active={currentPage === i + 1}
+    onClick={() => setCurrentPage(i + 1)}
   >
-    {index + 1}
+    {i + 1}
   </Pagination.Item>
 ))}
 
@@ -1127,17 +1114,30 @@ style={{
   border: "none",
   borderRadius: 10,
 }}
-onClick={() => {
-  if (!selectedDelete) return;
+ onClick={() => {
+    if (!selectedDelete) return;
 
-  setDataUsers(
-    dataUsers.filter(item => item.id !== selectedDelete.id)
-  );
+    // ambil data terbaru
+    const users = JSON.parse(localStorage.getItem("users")) || [];
 
-  setShowDelete(false);
-  setSelectedDelete(null);
-  setReason("");
-}}
+    // hapus user
+    const updatedUsers = users.filter(
+      (user) => user.id !== selectedDelete.id
+    );
+
+    // simpan ke localStorage
+    localStorage.setItem(
+      "users",
+      JSON.stringify(updatedUsers)
+    );
+
+    // update state
+    setDataUsers(updatedUsers);
+
+    setShowDelete(false);
+    setSelectedDelete(null);
+    setReason("");
+  }}
 >
   YA, HAPUS DATA
 </Button>
@@ -1380,27 +1380,32 @@ size="xl"
                     height:46,
                     borderRadius:10
                 }}
-                onClick={() => {
-  if (!selectedReActive) return;
+               onClick={() => {
+    if (!selectedReActive) return;
 
-  setDataUsers((prev) =>
-    prev.map((user) =>
+    const users = JSON.parse(localStorage.getItem("users")) || [];
+
+    const updatedUsers = users.map((user) =>
       user.id === selectedReActive.id
         ? {
             ...user,
             status: "Active",
           }
         : user
-    )
-  );
+    );
 
-  setShowReActive(false);
-  setSelectedReActive(null);
-  setShowCalendar(false);
+    localStorage.setItem(
+      "users",
+      JSON.stringify(updatedUsers)
+    );
 
-  // pindah ke tab Active
-  setTab("active");
-}}
+    setDataUsers(updatedUsers);
+
+    setShowReActive(false);
+    setSelectedReActive(null);
+    setTab("active");
+  }}
+
             >
                 YA, AKTIFKAN DATA
             </Button>
