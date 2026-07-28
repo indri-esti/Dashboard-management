@@ -200,6 +200,26 @@ const handleHapusFoto = () => {
     color: "#334155",
   };
 
+  const fieldCardStyle = {
+  background: "#fff",
+  border: "1px solid #E2E8F0",
+  borderRadius: "14px",
+  padding: "18px 20px",   
+  transition: "all .2s ease",
+  boxShadow: "0 2px 8px rgba(15,23,42,.04)",
+};
+
+const modernInputStyle = {
+  width: "100%",
+  marginTop: "8px",
+  border: "none",
+  outline: "none",
+  background: "transparent",
+  fontSize: "15px",
+  color: "#1E293B",
+  padding: "4px 0",
+};
+
 const handleTwoFactor = () => {
   const status = !settings.twoFactor;
 
@@ -486,21 +506,55 @@ boxShadow:"0 15px 35px rgba(0,0,0,.25)",
               gap: "18px",
             }}
           >
-            <div>
-              <label style={labelStyle}>
-                Nama Lengkap
-              </label>
 
-              <input
-                name="nama"
-                value={settings.nama}
-                onChange={handleChange}
-                style={inputStyle}
-              />
-            </div>
+            <div
+  style={fieldCardStyle}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.borderColor = "#2538C8";
+    e.currentTarget.style.boxShadow =
+      "0 6px 18px rgba(37,56,200,.10)";
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.borderColor = "#E2E8F0";
+    e.currentTarget.style.boxShadow =
+      "0 2px 8px rgba(15,23,42,.04)";
+  }}
+>
+  <label
+    style={{
+      fontSize: "13px",
+      color: "#64748B",
+      fontWeight: 600,
+      marginBottom: "6px",
+      display: "block",
+    }}
+  >
+    Nama Lengkap
+  </label>
+
+  <input
+    name="nama"
+    value={settings.nama}
+    onChange={handleChange}
+    placeholder="Masukkan nama lengkap"
+    style={modernInputStyle}
+  />
+</div>
 
             
-          <div>
+            <div
+  style={fieldCardStyle}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.borderColor = "#2538C8";
+    e.currentTarget.style.boxShadow =
+      "0 6px 18px rgba(37,56,200,.10)";
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.borderColor = "#E2E8F0";
+    e.currentTarget.style.boxShadow =
+      "0 2px 8px rgba(15,23,42,.04)";
+  }}
+>
   <label style={labelStyle}>
     Tanggal Lahir
   </label>
@@ -510,13 +564,25 @@ boxShadow:"0 15px 35px rgba(0,0,0,.25)",
     name="tanggalLahir"
     value={settings.tanggalLahir}
     onChange={handleChange}
-    style={inputStyle}
+    style={modernInputStyle}
   />
 
 </div>
 
 
-            <div>
+              <div
+  style={fieldCardStyle}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.borderColor = "#2538C8";
+    e.currentTarget.style.boxShadow =
+      "0 6px 18px rgba(37,56,200,.10)";
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.borderColor = "#E2E8F0";
+    e.currentTarget.style.boxShadow =
+      "0 2px 8px rgba(15,23,42,.04)";
+  }}
+>
               <label style={labelStyle}>
                 Jenis Kelamin
               </label>
@@ -532,7 +598,19 @@ boxShadow:"0 15px 35px rgba(0,0,0,.25)",
               </select>
             </div>
 
-            <div>
+              <div
+  style={fieldCardStyle}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.borderColor = "#2538C8";
+    e.currentTarget.style.boxShadow =
+      "0 6px 18px rgba(37,56,200,.10)";
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.borderColor = "#E2E8F0";
+    e.currentTarget.style.boxShadow =
+      "0 2px 8px rgba(15,23,42,.04)";
+  }}
+>
               <label style={labelStyle}>
                 Email
               </label>
@@ -541,11 +619,23 @@ boxShadow:"0 15px 35px rgba(0,0,0,.25)",
                 name="email"
                 value={settings.email}
                 onChange={handleChange}
-                style={inputStyle}
+                style={modernInputStyle}
               />
             </div>
 
-            <div>
+              <div
+  style={fieldCardStyle}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.borderColor = "#2538C8";
+    e.currentTarget.style.boxShadow =
+      "0 6px 18px rgba(37,56,200,.10)";
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.borderColor = "#E2E8F0";
+    e.currentTarget.style.boxShadow =
+      "0 2px 8px rgba(15,23,42,.04)";
+  }}
+>
               <label style={labelStyle}>
                 Nomor Telepon
               </label>
@@ -554,11 +644,23 @@ boxShadow:"0 15px 35px rgba(0,0,0,.25)",
                 name="telepon"
                 value={settings.telepon}
                 onChange={handleChange}
-                style={inputStyle}
+                style={modernInputStyle}
               />
             </div>
 
-            <div>
+              <div
+  style={fieldCardStyle}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.borderColor = "#2538C8";
+    e.currentTarget.style.boxShadow =
+      "0 6px 18px rgba(37,56,200,.10)";
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.borderColor = "#E2E8F0";
+    e.currentTarget.style.boxShadow =
+      "0 2px 8px rgba(15,23,42,.04)";
+  }}
+>
               <label style={labelStyle}>
                 Foto Profil
               </label>
@@ -567,7 +669,7 @@ boxShadow:"0 15px 35px rgba(0,0,0,.25)",
   type="file"
   accept="image/*"
   onChange={handleFoto}
-  style={inputStyle}
+  style={modernInputStyle}
 />
 
 {settings.foto && (
@@ -616,23 +718,54 @@ boxShadow:"0 15px 35px rgba(0,0,0,.25)",
             </div>
           </div>
 
-          <div style={{ marginTop: "18px" }}>
-            <label style={labelStyle}>
-              Alamat
-            </label>
+          <div
+  style={{
+    ...fieldCardStyle,
+    marginTop: "18px",
+  }}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.borderColor = "#2538C8";
+    e.currentTarget.style.boxShadow =
+      "0 6px 18px rgba(37,56,200,.10)";
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.borderColor = "#E2E8F0";
+    e.currentTarget.style.boxShadow =
+      "0 2px 8px rgba(15,23,42,.04)";
+  }}
+>
+  <label
+    style={{
+      display: "block",
+      marginBottom: "8px",
+      fontSize: "13px",
+      fontWeight: "600",
+      color: "#64748B",
+    }}
+  >
+    Alamat
+  </label>
 
-            <textarea
-              rows="3"
-              name="alamat"
-              value={settings.alamat}
-              onChange={handleChange}
-              style={{
-                ...inputStyle,
-                resize: "none",
-              }}
-            />
-          </div>
-        </div>
+  <textarea
+    rows={4}
+    name="alamat"
+    value={settings.alamat}
+    onChange={handleChange}
+    placeholder="Masukkan alamat lengkap..."
+    style={{
+      width: "100%",
+      border: "none",
+      outline: "none",
+      background: "transparent",
+      resize: "none",
+      fontSize: "15px",
+      color: "#1E293B",
+      lineHeight: "1.6",
+      minHeight: "90px",
+    }}
+  />
+</div>
+</div>
 
         {/* KEAMANAN */}
         <div
@@ -653,7 +786,19 @@ boxShadow:"0 15px 35px rgba(0,0,0,.25)",
             Keamanan
           </h3>
 
-          <div style={{ marginBottom: "18px" }}>
+            <div
+  style={fieldCardStyle}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.borderColor = "#2538C8";
+    e.currentTarget.style.boxShadow =
+      "0 6px 18px rgba(37,56,200,.10)";
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.borderColor = "#E2E8F0";
+    e.currentTarget.style.boxShadow =
+      "0 2px 8px rgba(15,23,42,.04)";
+  }}
+>
             <label style={labelStyle}>
               Password Lama
             </label>
@@ -687,15 +832,46 @@ boxShadow:"0 15px 35px rgba(0,0,0,.25)",
 </div>
 
 
-         <div style={{ marginBottom: "18px" }}>
-  <label style={labelStyle}>Password Baru</label>
+     <div
+  style= {{ 
+    marginTop: "20px",
+    padding: "18px 20px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    background: "#FFFFFF",
+    border: "1px solid #E2E8F0",
+    borderRadius: "14px",
+    transition: "all .2s ease",
+    boxShadow: "0 2px 8px rgba(15,23,42,.04)",
+    }}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.borderColor = "#2538C8";
+    e.currentTarget.style.boxShadow =
+      "0 6px 18px rgba(37,56,200,.10)";
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.borderColor = "#E2E8F0";
+    e.currentTarget.style.boxShadow =
+      "0 2px 8px rgba(15,23,42,.04)";
+  }}
+>
+  <label style={labelStyle}>
+    Password Baru
+  </label>
 
-  <div style={{ position: "relative" }}>
+  <div
+    style={{
+      position: "relative",
+      marginTop: "10px", // memberi jarak label dengan input
+    }}
+  >
     <input
       type={showPasswordBaru ? "text" : "password"}
       name="passwordBaru"
       value={settings.passwordBaru}
       onChange={handleChange}
+      placeholder="Masukkan password baru"
       style={{
         ...inputStyle,
         paddingRight: "45px",
@@ -708,11 +884,11 @@ boxShadow:"0 15px 35px rgba(0,0,0,.25)",
       }
       style={{
         position: "absolute",
-        right: "15px",
+        right: "18px",
         top: "50%",
         transform: "translateY(-50%)",
         cursor: "pointer",
-        color: "#64748b",
+        color: "#64748B",
       }}
     >
       {showPasswordBaru ? <FaEye /> : <FaEyeSlash />}
@@ -720,7 +896,31 @@ boxShadow:"0 15px 35px rgba(0,0,0,.25)",
   </div>
 </div>
 
-          <div style={{ marginBottom: "20px" }}>
+
+          <div
+  style={{
+    marginTop: "20px",
+    padding: "18px 20px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    background: "#FFFFFF",
+    border: "1px solid #E2E8F0",
+    borderRadius: "14px",
+    transition: "all .2s ease",
+    boxShadow: "0 2px 8px rgba(15,23,42,.04)",
+  }}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.borderColor = "#2538C8";
+    e.currentTarget.style.boxShadow =
+      "0 6px 18px rgba(37,56,200,.10)";
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.borderColor = "#E2E8F0";
+    e.currentTarget.style.boxShadow =
+      "0 2px 8px rgba(15,23,42,.04)";
+  }}
+>
   <label style={labelStyle}>
     Konfirmasi Password
   </label>
@@ -731,6 +931,7 @@ boxShadow:"0 15px 35px rgba(0,0,0,.25)",
       name="konfirmasiPassword"
       value={settings.konfirmasiPassword}
       onChange={handleChange}
+      placeholder="Masukan Konfirmasi password"
       style={{
         ...inputStyle,
         paddingRight: "45px",
@@ -759,15 +960,28 @@ boxShadow:"0 15px 35px rgba(0,0,0,.25)",
   </div>
 </div>
 
-          <div
+       <div
   style={{
-    paddingTop: "20px",
+    marginTop: "20px",
+    padding: "18px 20px",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    border:"1px solid #D6DCE8",
-transition:".2s",
-fontSize:"15px",
+    background: "#FFFFFF",
+    border: "1px solid #E2E8F0",
+    borderRadius: "14px",
+    transition: "all .2s ease",
+    boxShadow: "0 2px 8px rgba(15,23,42,.04)",
+  }}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.borderColor = "#2538C8";
+    e.currentTarget.style.boxShadow =
+      "0 6px 18px rgba(37,56,200,.10)";
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.borderColor = "#E2E8F0";
+    e.currentTarget.style.boxShadow =
+      "0 2px 8px rgba(15,23,42,.04)";
   }}
 >
   <div>
@@ -775,7 +989,8 @@ fontSize:"15px",
       style={{
         margin: 0,
         fontSize: "16px",
-        color: "#1e293b",
+        fontWeight: 600,
+        color: "#1E293B",
       }}
     >
       Verifikasi Dua Langkah (2FA)
@@ -783,14 +998,17 @@ fontSize:"15px",
 
     <p
       style={{
-        margin: "5px 0 0",
+        margin: "6px 0 0",
         fontSize: "13px",
-        color: "#64748b",
+        color: "#64748B",
+        lineHeight: 1.5,
       }}
     >
       Tingkatkan keamanan akun dengan verifikasi melalui email.
     </p>
   </div>
+
+  
 
            <label
   style={{
@@ -1185,7 +1403,7 @@ fontWeight:"600",
     </span>
   </div>
 </div>
-      </div>
+</div>
      
   );
 }

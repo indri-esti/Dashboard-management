@@ -195,18 +195,33 @@ const filteredUsers = dataUsers
       (item.email || "").toLowerCase().includes(keyword) ||
       (item.phone || "").toLowerCase().includes(keyword)
     );
-  });
-
-  // ===========================
-  // Pagination
-  // ===========================
-  const totalPages = Math.ceil(
-    filteredUsers.length / itemsPerPage
+  })
+  .sort(
+    (a, b) =>
+      new Date(b.createdAt).getTime() -
+      new Date(a.createdAt).getTime()
   );
+  
+  // ===========================
+// Pagination
+// ===========================
+const totalPages = Math.max(
+  1,
+  Math.ceil(filteredUsers.length / itemsPerPage)
+);
 
- const currentUsers = filteredUsers.slice(
-  (currentPage - 1) * itemsPerPage,
-  currentPage * itemsPerPage
+useEffect(() => {
+  if (currentPage > totalPages) {
+    setCurrentPage(totalPages);
+  }
+}, [currentPage, totalPages]);
+
+const indexOfLastUser = currentPage * itemsPerPage;
+const indexOfFirstUser = indexOfLastUser - itemsPerPage;
+
+const currentUsers = filteredUsers.slice(
+  indexOfFirstUser,
+  indexOfLastUser
 );
 
 // ===========================
@@ -665,7 +680,7 @@ NO.
             borderBottom: "1px solid #EEF2F7",
           }}
         >
-          {index + 1}
+          {(currentPage - 1) * itemsPerPage + index + 1}
         </td>
 
         <td
@@ -886,40 +901,46 @@ cursor:"pointer"
   )}
 </tbody>
           </Table>
-          <div className="d-flex justify-content-center mt-4">
+        <div className="d-flex justify-content-center mt-4">
+  <Pagination>
 
-<Pagination>
+    <Pagination.First
+      onClick={() => setCurrentPage(1)}
+      disabled={currentPage === 1}
+    />
 
-<Pagination.First
-onClick={() => setCurrentPage(1)}
-disabled={currentPage === 1}
-/>
+    <Pagination.Prev
+      onClick={() =>
+        setCurrentPage((prev) => Math.max(prev - 1, 1))
+      }
+      disabled={currentPage === 1}
+    />
 
-<Pagination.Prev
-onClick={() => setCurrentPage(currentPage - 1)}
-disabled={currentPage === 1}
-/>
+    {Array.from({ length: totalPages }, (_, i) => (
+      <Pagination.Item
+        key={i + 1}
+        active={currentPage === i + 1}
+        onClick={() => setCurrentPage(i + 1)}
+      >
+        {i + 1}
+      </Pagination.Item>
+    ))}
 
-{[...Array(totalPages)].map((_, i) => (
-  <Pagination.Item key={i}
-    active={currentPage === i + 1}
-    onClick={() => setCurrentPage(i + 1)}
-  >
-    {i + 1}
-  </Pagination.Item>
-))}
+    <Pagination.Next
+      onClick={() =>
+        setCurrentPage((prev) =>
+          Math.min(prev + 1, totalPages)
+        )
+      }
+      disabled={currentPage === totalPages}
+    />
 
-<Pagination.Next
-onClick={() => setCurrentPage(currentPage + 1)}
-disabled={currentPage === totalPages}
-/>
+    <Pagination.Last
+      onClick={() => setCurrentPage(totalPages)}
+      disabled={currentPage === totalPages}
+    />
 
-<Pagination.Last
-onClick={() => setCurrentPage(totalPages)}
-disabled={currentPage === totalPages}
-/>
-
-</Pagination>
+  </Pagination>
 </div>
         </Card.Body>
       </Card>
