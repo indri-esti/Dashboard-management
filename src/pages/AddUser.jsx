@@ -35,7 +35,12 @@ function AddUser() {
   const [alertTitle, setAlertTitle] = useState("");
 const [alertDescription, setAlertDescription] = useState("");
   
-  const [isPressed, setIsPressed] = useState(false);
+// animate button
+const [cancelPressed, setCancelPressed] = useState(false);
+const [cancelHover, setCancelHover] = useState(false);
+
+const [saveHover, setSaveHover] = useState(false);
+const [isPressed, setIsPressed] = useState(false);
   
   
 const [alertType, setAlertType] = useState("error");
@@ -177,15 +182,31 @@ const [alertType, setAlertType] = useState("error");
     }
 
     // simpan ke localStorage
-   const newUser = {
+ const shortTitle =
+  title === "Tuan"
+    ? "Tn"
+    : title === "Nyonya"
+    ? "Ny"
+    : "Nn";
+
+const newUser = {
   id: Date.now(),
-  title,
+
+  // untuk tabel
+  title: shortTitle,
+
+  // untuk form edit
+  titleFull: title,
+
   nama,
   phone,
   email,
   tanggal: format(tanggal, "dd/MM/yyyy"),
   role,
   status: "Active",
+  alasanNonActive: "",
+
+  password,
 
   createdAt: new Date().toISOString(),
 };
@@ -807,6 +828,13 @@ borderBottom:"1px solid #F0F0F0"
 >
 <Button
   type="button"
+  onMouseEnter={() => setCancelHover(true)}
+  onMouseLeave={() => {
+    setCancelHover(false);
+    setCancelPressed(false);
+  }}
+  onMouseDown={() => setCancelPressed(true)}
+  onMouseUp={() => setCancelPressed(false)}
   onClick={() => {
     setAlertType("warning");
     setAlertTitle("Pembuatan dibatalkan");
@@ -826,12 +854,19 @@ borderBottom:"1px solid #F0F0F0"
     height: "56px",
     borderRadius: "14px",
     border: "1px solid #CBD5E1",
-    background: "#F8FAFC",
+    background: cancelHover ? "#EEF2F7" : "#F8FAFC",
     color: "#475569",
     fontWeight: 700,
     fontSize: "16px",
-    cursor: "pointer",
-    transition: "all .2s ease",
+    transition: "all .25s ease",
+    transform: cancelPressed
+      ? "scale(.96)"
+      : cancelHover
+      ? "translateY(-2px)"
+      : "scale(1)",
+    boxShadow: cancelHover
+      ? "0 10px 24px rgba(0,0,0,.08)"
+      : "0 2px 6px rgba(0,0,0,.05)",
   }}
 >
   BATAL
@@ -840,26 +875,44 @@ borderBottom:"1px solid #F0F0F0"
 <Button
   type="submit"
   disabled={!isFormValid}
-  onMouseDown={() => setIsPressed(true)}
-  onMouseUp={() => setIsPressed(false)}
-  onMouseLeave={() => setIsPressed(false)}
+  onMouseEnter={() => setSaveHover(true)}
+onMouseLeave={() => {
+  setSaveHover(false);
+  setIsPressed(false);
+}}
+onMouseDown={() => setIsPressed(true)}
+onMouseUp={() => setIsPressed(false)}
   style={{
     flex: 1,
     height: "56px",
     borderRadius: "18px",
     border: "none",
-    backgroundColor: isFormValid ? "#2438C8" : "#C8D0F5",
-    color: "#FFFFFF",
-    fontWeight: "700",
+    background: isFormValid
+      ? "linear-gradient(135deg,#3155FF,#2438C8)"
+      : "#C8D0F5",
+    color: "#FFF",
+    fontWeight: 700,
     fontSize: "16px",
     cursor: isFormValid ? "pointer" : "not-allowed",
-    transition: "all .2s ease",
-    transform: isPressed ? "scale(0.97)" : "scale(1)",
-    boxShadow: isFormValid
-      ? "0 8px 20px rgba(36,56,200,.30)"
-      : "none",
-    opacity: isFormValid ? 1 : 0.7,
-  }}
+
+    transition:
+      "transform .18s ease, box-shadow .25s ease, background .25s ease",
+
+    transform: isPressed
+      ? "scale(.96)"
+      : saveHover
+      ? "translateY(-2px)"
+      : "scale(1)",
+
+    boxShadow:
+      saveHover && isFormValid
+        ? "0 14px 30px rgba(36,56,200,.35)"
+        : isFormValid
+        ? "0 8px 20px rgba(36,56,200,.25)"
+        : "none",
+
+    opacity: isFormValid ? 1 : .65,
+}}
 >
  {loading ? "MENYIMPAN..." : "SIMPAN DATA"}
 </Button>

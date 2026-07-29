@@ -44,6 +44,14 @@ function EditUser() {
     boxShadow: "none",
   };
 
+
+  //animate button
+
+  const [cancelPressed, setCancelPressed] = useState(false);
+  const [cancelHover, setCancelHover] = useState(false);
+  
+  const [saveHover, setSaveHover] = useState(false);
+
   const [isPressed, setIsPressed] = useState(false);
 
   // toast (untuk sukses / batal)
@@ -84,44 +92,56 @@ function EditUser() {
   const [passwordError, setPasswordError] = useState("");
   const [confirmError, setConfirmError] = useState("");
 
-  // ambil data user existing dari localStorage berdasarkan id di url
-useEffect(() => {
+ useEffect(() => {
   const existing = JSON.parse(localStorage.getItem("users")) || [];
 
   const found = existing.find((u) => String(u.id) === String(id));
 
-  console.log("ID URL:", id);
-  console.log("Existing:", existing);
-  console.log("Found:", found);
+  if (!found) return;
 
-  if (found) {
-    let savedTitle = found.titleFull || found.title || "";
+  let savedTitle = "";
 
-    if (savedTitle === "Tn") savedTitle = "Tuan";
-    if (savedTitle === "Ny") savedTitle = "Nyonya";
-    if (savedTitle === "Nn") savedTitle = "Nona";
+  // Prioritaskan titleFull
+  if (found.titleFull) {
+    savedTitle = found.titleFull;
+  } else {
+    switch (found.title) {
+      case "Tn":
+        savedTitle = "Tuan";
+        break;
+      case "Ny":
+        savedTitle = "Nyonya";
+        break;
+      case "Nn":
+        savedTitle = "Nona";
+        break;
+      case "Tuan":
+      case "Nyonya":
+      case "Nona":
+        savedTitle = found.title;
+        break;
+      default:
+        savedTitle = "";
+    }
+  }
 
-    setTitle(savedTitle);
+  setTitle(savedTitle);
+  setNama(found.nama || "");
+  setPhone(found.phone || "");
+  setEmail(found.email || "");
+  setRole(found.role || "");
+  setStatus(found.status || "Active");
+  setAlasanNonActive(found.alasanNonActive || "");
 
-    setNama(found.nama || "");
-    setPhone(found.phone || "");
-    setEmail(found.email || "");
-    setRole(found.role || "");
-    setStatus(found.status || "Active");
-    setAlasanNonActive(found.alasanNonActive || "");
-
-    if (found.tanggal) {
-      try {
-        if (found.tanggal.includes("/")) {
-          setTanggal(
-            parse(found.tanggal, "dd/MM/yyyy", new Date())
-          );
-        } else {
-          setTanggal(new Date(found.tanggal));
-        }
-      } catch {
-        setTanggal(null);
+  if (found.tanggal) {
+    try {
+      if (found.tanggal.includes("/")) {
+        setTanggal(parse(found.tanggal, "dd/MM/yyyy", new Date()));
+      } else {
+        setTanggal(new Date(found.tanggal));
       }
+    } catch {
+      setTanggal(null);
     }
   }
 }, [id]);
@@ -1019,6 +1039,13 @@ useEffect(() => {
                 <div className="d-flex gap-3 mt-4">
                   <Button
                     type="button"
+                    onMouseEnter={() => setCancelHover(true)}
+  onMouseLeave={() => {
+    setCancelHover(false);
+    setCancelPressed(false);
+  }}
+  onMouseDown={() => setCancelPressed(true)}
+  onMouseUp={() => setCancelPressed(false)}
                     onClick={() => {
                       setAlertType("warning");
                       setAlertTitle("Perubahan dibatalkan");
@@ -1041,6 +1068,15 @@ useEffect(() => {
                       color: "#475569",
                       fontWeight: 700,
                       fontSize: "16px",
+                       transition: "all .25s ease",
+    transform: cancelPressed
+      ? "scale(.96)"
+      : cancelHover
+      ? "translateY(-2px)"
+      : "scale(1)",
+    boxShadow: cancelHover
+      ? "0 10px 24px rgba(0,0,0,.08)"
+      : "0 2px 6px rgba(0,0,0,.05)",
                     }}
                   >
                     BATAL
@@ -1049,9 +1085,13 @@ useEffect(() => {
                   <Button
                     type="submit"
                     disabled={!isFormValid}
-                    onMouseDown={() => setIsPressed(true)}
-                    onMouseUp={() => setIsPressed(false)}
-                    onMouseLeave={() => setIsPressed(false)}
+                    onMouseEnter={() => setSaveHover(true)}
+onMouseLeave={() => {
+  setSaveHover(false);
+  setIsPressed(false);
+}}
+onMouseDown={() => setIsPressed(true)}
+onMouseUp={() => setIsPressed(false)}
                     style={{
                       flex: 1,
                       height: "56px",
@@ -1062,11 +1102,21 @@ useEffect(() => {
                       fontWeight: "700",
                       fontSize: "16px",
                       cursor: isFormValid ? "pointer" : "not-allowed",
-                      transition: "all .2s ease",
-                      transform: isPressed ? "scale(0.97)" : "scale(1)",
-                      boxShadow: isFormValid
-                        ? "0 8px 20px rgba(36,56,200,.30)"
-                        : "none",
+                      transition:
+      "transform .18s ease, box-shadow .25s ease, background .25s ease",
+
+    transform: isPressed
+      ? "scale(.96)"
+      : saveHover
+      ? "translateY(-2px)"
+      : "scale(1)",
+
+    boxShadow:
+      saveHover && isFormValid
+        ? "0 14px 30px rgba(36,56,200,.35)"
+        : isFormValid
+        ? "0 8px 20px rgba(36,56,200,.25)"
+        : "none",
                       opacity: isFormValid ? 1 : 0.7,
                     }}
                   >

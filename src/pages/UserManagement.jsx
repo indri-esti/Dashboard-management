@@ -55,14 +55,18 @@ function UserManagement() {
       year: "numeric",
     });
 
-  const [startDate, setStartDate] = useState(new Date(2023, 3, 4));
-  const [endDate, setEndDate] = useState(new Date(2023, 6, 16));
+ const today = new Date();
+
+const [startDate, setStartDate] = useState(
+  new Date(today.getFullYear(), 0, 1)
+);
+
+const [endDate, setEndDate] = useState(today);
+
 
   const [showCalendar, setShowCalendar] = useState(false);
 
-  const [dateRange, setDateRange] = useState(
-    "4 April 2023 - 16 Juli 2023"
-  );
+  const [dateRange, setDateRange] = useState("Semua Tanggal");
 
   // ===========================
   // Re Active
@@ -187,6 +191,8 @@ const filteredUsers = dataUsers
       ? item.status === "Active"
       : item.status === "Non Active"
   )
+
+  // Filter Search
   .filter((item) => {
     const keyword = search.toLowerCase();
 
@@ -196,12 +202,33 @@ const filteredUsers = dataUsers
       (item.phone || "").toLowerCase().includes(keyword)
     );
   })
+
+  // Filter Tanggal
+  .filter((item) => {
+    if (!item.createdAt) return false;
+
+    const created = new Date(item.createdAt);
+
+    return (
+      created >= startDate &&
+      created <= new Date(
+        endDate.getFullYear(),
+        endDate.getMonth(),
+        endDate.getDate(),
+        23,
+        59,
+        59,
+        999
+      )
+    );
+  })
+
   .sort(
     (a, b) =>
-      new Date(b.createdAt).getTime() -
-      new Date(a.createdAt).getTime()
+      new Date(b.createdAt) -
+      new Date(a.createdAt)
   );
-  
+
   // ===========================
 // Pagination
 // ===========================
@@ -228,8 +255,7 @@ const currentUsers = filteredUsers.slice(
 // Member Baru (90 Hari Terakhir)
 // ===========================
 
-const today = new Date();
-const ninetyDaysAgo = new Date();
+const ninetyDaysAgo = new Date(today);
 ninetyDaysAgo.setDate(today.getDate() - 90);
 
 const newMembers = dataUsers.filter((user) => {
@@ -531,21 +557,46 @@ fontWeight:500,
   </Col>
 
   <Col md={4} className="text-end">
-    <Button
-      onClick={() => navigate("/user-management/tambah")}
-      style={{
-background:"#2538C8",
-border:"none",
-height:52,
-padding:"0 26px",
-borderRadius:14,
-fontWeight:600,
-boxShadow:"0 6px 18px rgba(37,56,200,.25)"
-}}
-    >
-      <FaPlus className="me-2"/>
-      Buat User Baru
-    </Button>
+   <Button
+  onClick={() => navigate("/user-management/tambah")}
+  style={{
+    background: "#2538C8",
+    border: "none",
+    height: 52,
+    padding: "0 26px",
+    borderRadius: 14,
+    fontWeight: 600,
+    boxShadow: "0 6px 18px rgba(37,56,200,.25)",
+    transition: "all .25s ease",
+    transform: "translateY(0)",
+  }}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.background = "#1E2FB5";
+    e.currentTarget.style.transform = "translateY(-3px)";
+    e.currentTarget.style.boxShadow =
+      "0 12px 28px rgba(37,56,200,.35)";
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.background = "#2538C8";
+    e.currentTarget.style.transform = "translateY(0)";
+    e.currentTarget.style.boxShadow =
+      "0 6px 18px rgba(37,56,200,.25)";
+  }}
+  onMouseDown={(e) => {
+    e.currentTarget.style.transform = "scale(.97)";
+  }}
+  onMouseUp={(e) => {
+    e.currentTarget.style.transform = "translateY(-3px)";
+  }}
+>
+  <FaPlus
+    className="me-2"
+    style={{
+      transition: "transform .25s",
+    }}
+  />
+  Buat User Baru
+</Button>
   </Col>
 </Row>
 
@@ -974,16 +1025,18 @@ Detail Data User
 <Col xs={5}>Title</Col>
 
 <Col xs={7} className="text-end">
- {
-selectedUser?.titleFull ||
-(selectedUser?.title === "Tn"
-  ? "Tuan"
-  : selectedUser?.title === "Ny"
-  ? "Nyonya"
-  : selectedUser?.title === "Nn"
-  ? "Nona"
-  : selectedUser?.title)
-}
+  {selectedUser
+    ? selectedUser.titleFull &&
+      selectedUser.titleFull !== "-"
+      ? selectedUser.titleFull
+      : selectedUser.title === "Tn"
+      ? "Tuan"
+      : selectedUser.title === "Ny"
+      ? "Nyonya"
+      : selectedUser.title === "Nn"
+      ? "Nona"
+      : selectedUser.title || "-"
+    : "-"}
 </Col>
 
 </Row>
@@ -1312,18 +1365,17 @@ size="xl"
           borderRadius: 12,
           fontWeight: 600,
         }}
-    onClick={() => {
-  console.log("calendarMode =", calendarMode);
-  console.log("selected =", selectedReActive);
+   onClick={() => {
 
   setDateRange(
     `${formatDate(startDate)} - ${formatDate(endDate)}`
   );
 
+  setCurrentPage(1);
+
   setShowCalendar(false);
 
   if (calendarMode === "reactive") {
-    console.log("Buka Modal Konfirmasi");
     setShowReActive(true);
   }
 }}
