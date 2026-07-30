@@ -37,6 +37,33 @@ function UserManagement() {
 
   const navigate = useNavigate();
 
+  //NO HP
+  const formatPhoneNumber = (phone) => {
+  if (!phone) return "-";
+
+  let number = String(phone).replace(/\D/g, "");
+
+  // Hilangkan kode negara jika ada
+  if (number.startsWith("62")) {
+    number = number.slice(2);
+  }
+
+  // Hilangkan angka 0 depan jika ada
+  if (number.startsWith("0")) {
+    number = number.slice(1);
+  }
+
+  // Maksimal 11-13 digit
+  if (number.length >= 10) {
+    return `(+62) ${number.replace(
+      /(\d{3})(\d{4})(\d+)/,
+      "$1-$2-$3"
+    )}`;
+  }
+
+  return `(+62) ${number}`;
+};
+
   // ===========================
   // Pagination
   // ===========================
@@ -298,28 +325,45 @@ const totalMembers = dataUsers.length;
 
       {/* Statistik */}
      <Row className="g-4 mb-4">
+
   {/* Total Member */}
   <Col md={6}>
-    <Card
-      style={{
-        border: "none",
-        borderRadius: "16px",
-        background: "#EAF5FF",
-        minHeight: "120px", 
-        boxShadow: "0 4px 18px rgba(15,23,42,.04)",
-      }}
-    >
+  <Card
+  style={{
+    border: "1px solid #CFE6FF",
+    borderRadius: "16px",
+    background: "#EAF5FF", // tetap biru muda
+    minHeight: "120px",
+    overflow: "hidden",
+    boxShadow: "0 10px 30px rgba(15,23,42,.08)",
+    transition: "all .3s ease",
+    cursor: "pointer",
+  }}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.transform = "translateY(-6px)";
+    e.currentTarget.style.borderColor = "#93C5FD";
+    e.currentTarget.style.boxShadow =
+      "0 18px 40px rgba(37,99,235,.18)";
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.transform = "translateY(0)";
+    e.currentTarget.style.borderColor = "#CFE6FF";
+    e.currentTarget.style.boxShadow =
+      "0 10px 30px rgba(15,23,42,.08)";
+  }}
+>
       <Card.Body className="px-4 py-3">
         <div className="d-flex justify-content-between align-items-center">
           <div>
             <div
               className="d-flex align-items-center gap-2"
-              style={{
-                fontSize: "13px",
-                color: "#4B5563",
-                fontWeight: 600,
-                textTransform: "uppercase",
-              }}
+               style={{
+    fontSize: 13,
+    fontWeight: 700,
+    letterSpacing: 1,
+    color: "#64748B",
+    textTransform: "uppercase",
+  }}
             >
               Total Member
               <FaInfoCircle
@@ -330,32 +374,35 @@ const totalMembers = dataUsers.length;
             </div>
 
             <h2
-              style={{
-                marginTop: 4,
-                marginBottom: 0,
-                fontSize: "42px",
-                fontWeight: "700",
-                color: "#1F2937",
-              }}
+               style={{
+    fontSize: 46,
+    fontWeight: 800,
+    color: "#0F172A",
+    margin: "6px 0",
+    lineHeight: 1,
+  }}
             >
 
 {totalMembers}
             </h2>
           </div>
 
-          <div
-            style={{
-              width: 60,
-              height: 60,
-              borderRadius: 16,
-              background: "#D6ECFF",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <FaUsers size={28} color="#2563EB" />
-          </div>
+        <div
+  style={{
+    width: 68,
+    height: 68,
+    borderRadius: 20,
+    background: "#2563EB",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    boxShadow: "0 10px 25px rgba(37,99,235,.25)",
+    border: "4px solid rgba(255,255,255,.55)",
+    transition: "all .3s ease",
+  }}
+>
+  <FaUsers size={30} color="#fff" />
+</div>
         </div>
       </Card.Body>
     </Card>
@@ -364,25 +411,39 @@ const totalMembers = dataUsers.length;
   {/* Member Baru */}
   <Col md={6}>
     <Card
-      style={{
-        border: "none",
-        borderRadius: "16px",
-        background: "#FFF5DA",
-        minHeight: "120px", 
-        boxShadow: "0 4px 18px rgba(15,23,42,.04)",
-      }}
-    >
+  style={{
+    border: "1px solid #F8E8B5",
+    borderRadius: "16px",
+    background: "#FFF5DA", // tetap kuning
+    minHeight: "120px",
+    boxShadow: "0 8px 24px rgba(245, 158, 11, 0.12)",
+    transition: "all .3s ease",
+    cursor: "pointer",
+    overflow: "hidden",
+  }}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.transform = "translateY(-6px)";
+    e.currentTarget.style.boxShadow =
+      "0 18px 40px rgba(245, 158, 11, 0.22)";
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.transform = "translateY(0)";
+    e.currentTarget.style.boxShadow =
+      "0 8px 24px rgba(245, 158, 11, 0.12)";
+  }}
+>
       <Card.Body className="px-4 py-3">
         <div className="d-flex justify-content-between align-items-center">
           <div>
   <div
     className="d-flex align-items-center gap-2"
-    style={{
-      fontSize: "13px",
-      color: "#4B5563",
-      fontWeight: 600,
-      textTransform: "uppercase",
-    }}
+      style={{
+    fontSize: 13,
+    fontWeight: 700,
+    letterSpacing: 1,
+    color: "#64748B",
+    textTransform: "uppercase",
+  }}
   >
     Member Baru
     <FaInfoCircle
@@ -391,7 +452,17 @@ const totalMembers = dataUsers.length;
     />
   </div>
 
-  <h2>{newMembers.length}</h2>
+  <h2
+     style={{
+    fontSize: 37,
+    fontWeight: 800,
+    color: "#0F172A",
+    margin: "6px 0",
+    lineHeight: 1,
+  }}
+  >
+  {newMembers.length}
+  </h2>
 
   <small
     style={{
@@ -416,34 +487,42 @@ const totalMembers = dataUsers.length;
 </div>
 
           <div
-            style={{
-              width: 60,
-              height: 60,
-              borderRadius: 16,
-              background: "#DCFCE7",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <FaUserPlus size={28} color="#16A34A" />
-          </div>
+  style={{
+    width: 64,
+    height: 64,
+    borderRadius: 18,
+    background: "linear-gradient(135deg, #FBBF24, #F59E0B)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    boxShadow: "0 10px 25px rgba(245, 158, 11, .25)",
+  }}
+>
+  <FaUserPlus size={30} color="#fff" />
+</div>
         </div>
       </Card.Body>
     </Card>
   </Col>
 </Row>
 
-      {/* Card */}
+      {/* Card tabel */}
       <Card
-        style={{
-          border: "none",
-          borderRadius: 16,
-          minHeight: "120px",
-          boxShadow: "0 5px 20px rgba(0,0,0,.05)",
-        }}
-      >
-        <Card.Body>
+  style={{
+    background: "#FFFFFF",
+    border: "1px solid #E9EEF5",
+    borderRadius: "22px",
+    boxShadow: "0 12px 32px rgba(15,23,42,.06)",
+    overflow: "hidden",
+    transition: "all .3s ease",
+  }}
+>
+        <Card.Body
+           style={{
+            padding: "32px"
+           }}
+        >
+
           {/* Tab */}
           <div
             style={{
@@ -490,12 +569,15 @@ Active
           {/* Search */}
           <Row className="align-items-center mb-4">
   <Col md={4}>
-    <InputGroup
-  style={{
-    height: 52,
-    borderRadius: 14,
-    overflow: "hidden",
-  }}
+   <InputGroup
+style={{
+    height:54,
+    border:"1px solid #E2E8F0",
+    borderRadius:16,
+    overflow:"hidden",
+    background:"#fff",
+    boxShadow:"0 2px 10px rgba(15,23,42,.03)"
+}}
 >
       <InputGroup.Text
   style={{
@@ -531,6 +613,12 @@ fontWeight:500,
     setCalendarMode("filter");
     setShowCalendar(true);
   }}
+  style={{
+    border:"1px solid #E2E8F0",
+    borderRadius:16,
+    overflow:"hidden",
+    boxShadow:"0 2px 10px rgba(15,23,42,.03)"
+}}
 >
   <InputGroup.Text
     style={{
@@ -610,21 +698,21 @@ style={{
   fontSize: 16,
 }}
 >
-  <thead
-    style={{
-      background: "#F8FAFC",
-    }}
-  >
+ <thead
+style={{
+    background:"#F8FAFC",
+}}
+>
   
   <tr
 style={{
-transition:".2s"
+    transition:"all .25s ease",
 }}
 onMouseEnter={(e)=>{
-e.currentTarget.style.background="#F8FAFC";
+    e.currentTarget.style.background="#F8FBFF";
 }}
 onMouseLeave={(e)=>{
-e.currentTarget.style.background="#fff";
+    e.currentTarget.style.background="#FFFFFF";
 }}
 >
 
@@ -642,79 +730,84 @@ NO.
 </th>
 
   <th
-    style={{
-      padding: "18px 16px",
-      fontSize: 12,
-      fontWeight: 600,
-      color: "#64748B",
-      borderBottom: "1px solid #E2E8F0",
-      letterSpacing: ".5px"
-    }}
-  >
+style={{
+fontSize:15,
+padding:"22px 18px",
+fontWeight:600,
+color:"#64748B",
+borderBottom:"1px solid #E2E8F0",
+letterSpacing:".5px"
+}}
+>
     TITLE
   </th>
 
   <th
-    style={{
-      padding: "18px 16px",
-      fontSize: 12,
-      fontWeight: 600,
-      color: "#64748B",
-      borderBottom: "1px solid #E2E8F0",
-      letterSpacing: ".5px"
-    }}>NAMA</th>
+style={{
+fontSize:15,
+padding:"22px 18px",
+fontWeight:600,
+color:"#64748B",
+borderBottom:"1px solid #E2E8F0",
+letterSpacing:".5px"
+}}
+>
+  NAMA
+  </th>
 
   <th
-    style={{
-      padding: "18px 16px",
-      fontSize: 12,
-      fontWeight: 600,
-      color: "#64748B",
-      borderBottom: "1px solid #E2E8F0",
-      letterSpacing: ".5px"
-    }}
-  >
+style={{
+fontSize:15,
+padding:"22px 18px",
+fontWeight:600,
+color:"#64748B",
+borderBottom:"1px solid #E2E8F0",
+letterSpacing:".5px"
+}}
+>
     NO. HANDPHONE
   </th>
 
   <th
-     style={{
-      padding: "18px 16px",
-      fontSize: 12,
-      fontWeight: 600,
-      color: "#64748B",
-      borderBottom: "1px solid #E2E8F0",
-      letterSpacing: ".5px"
-    }}>
+style={{
+fontSize:15,
+padding:"22px 18px",
+fontWeight:600,
+color:"#64748B",
+borderBottom:"1px solid #E2E8F0",
+letterSpacing:".5px"
+}}
+>
       EMAIL
       </th>
 
   <th
-     style={{
-      padding: "18px 16px",
-      fontSize: 12,
-      fontWeight: 600,
-      color: "#64748B",
-      borderBottom: "1px solid #E2E8F0",
-      letterSpacing: ".5px"
-    }}>
+style={{
+fontSize:15,
+padding:"22px 18px",
+fontWeight:600,
+color:"#64748B",
+borderBottom:"1px solid #E2E8F0",
+letterSpacing:".5px"
+}}
+>
       TANGGAL LAHIR
     </th>
 
   <th
-     style={{
-      padding: "18px 16px",
-      fontSize: 12,
-      fontWeight: 600,
-      color: "#64748B",
-      borderBottom: "1px solid #E2E8F0",
-      letterSpacing: ".5px"
-    }}>
+style={{
+fontSize:15,
+padding:"22px 18px",
+fontWeight:600,
+color:"#64748B",
+borderBottom:"1px solid #E2E8F0",
+letterSpacing:".5px"
+}}
+>
       ROLES
       </th>
 
   <th></th>
-
    </tr>
 </thead>
 
@@ -766,17 +859,19 @@ item.title === "Tuan"
           {item.nama}
         </td>
 
-        <td
-          style={{
-            padding: "18px 16px",
-            verticalAlign: "middle",
-            fontSize: 14,
-            color: "#334155",
-            borderBottom: "1px solid #EEF2F7",
-          }}
-        >
-          {item.phone}
-        </td>
+       <td
+  style={{
+    padding: "18px 16px",
+    verticalAlign: "middle",
+    fontSize: 14,
+    color: "#334155",
+    borderBottom: "1px solid #EEF2F7",
+    fontWeight: 500,
+    whiteSpace: "nowrap",
+  }}
+>
+  {formatPhoneNumber(item.phone)}
+</td>
 
         <td
           style={{
@@ -972,6 +1067,11 @@ cursor:"pointer"
         key={i + 1}
         active={currentPage === i + 1}
         onClick={() => setCurrentPage(i + 1)}
+        style={{
+    borderRadius:10,
+    margin:"0 4px",
+    border:"1px solid #E2E8F0",
+}}
       >
         {i + 1}
       </Pagination.Item>
@@ -1017,7 +1117,7 @@ textAlign:"center",
 marginBottom:30
 }}
 >
-Detail Data User
+Detail Data Userr
 </h2>
 
 <Row className="mb-3">
@@ -1056,7 +1156,7 @@ Detail Data User
 <Col xs={5}>No. Handphone</Col>
 
 <Col xs={7} className="text-end">
-{selectedUser?.phone}
+{formatPhoneNumber(selectedUser?.phone)}
 </Col>
 
 </Row>
