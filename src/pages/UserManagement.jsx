@@ -75,25 +75,24 @@ function UserManagement() {
   // ===========================
   const [calendarMode, setCalendarMode] = useState("filter");
 
-  const formatDate = (date) =>
-    date.toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+ const formatDate = (date) =>
+  date.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
- const today = new Date();
+const today = new Date();
+const defaultStart = new Date(today.getFullYear(), 0, 1);
 
-const [startDate, setStartDate] = useState(
-  new Date(today.getFullYear(), 0, 1)
-);
-
+const [startDate, setStartDate] = useState(defaultStart);
 const [endDate, setEndDate] = useState(today);
 
+const [showCalendar, setShowCalendar] = useState(false);
 
-  const [showCalendar, setShowCalendar] = useState(false);
-
-  const [dateRange, setDateRange] = useState("Semua Tanggal");
+const [dateRange, setDateRange] = useState(
+  `${formatDate(defaultStart)} - ${formatDate(today)}`
+);
 
   // ===========================
   // Re Active
