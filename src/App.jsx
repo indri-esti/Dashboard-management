@@ -6,7 +6,7 @@ import MainLayout from "./layouts/MainLayout";
 import AddUser from "./pages/AddUser";
 import EditUser from "./pages/EditUser";
 import Profile from "./pages/Profile";
-import Setting from "./pages/Setting";
+import Register from "./pages/Register";
 
 function App() {
   return (
@@ -46,12 +46,13 @@ function App() {
         element={<Profile />}
       />
 
-      {/* Halaman Setting */}
-      <Route
-        path="/settings"
-        element={<Setting />}
-      />
+  
 
+      {/*Register*/}
+      <Route
+        path="/register"
+        element={<Register />}
+      />
     </Routes>
   );
 }

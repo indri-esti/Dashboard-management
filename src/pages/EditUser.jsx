@@ -7,6 +7,7 @@ import {
   Card,
   Form,
   Button,
+  Spinner,
 } from "react-bootstrap";
 
 import {
@@ -28,6 +29,13 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import IndonesiaFlag from "../assets/id.svg";
 
+// sesuaikan path ini dengan lokasi api.js kamu
+import api from "../api";
+
+// Backend menyimpan status sebagai 'active' / 'non active' (huruf kecil, ada spasi).
+// Normalisasi sekali di sini biar konsisten dengan UserManagement.jsx
+const isActiveStatus = (status) =>
+  (status || "").toLowerCase().trim() === "active";
 
 function EditUser() {
   const navigate = useNavigate();
@@ -44,12 +52,17 @@ function EditUser() {
     boxShadow: "none",
   };
 
+  // Loading saat ambil data awal user
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
+  // Loading saat submit / simpan
+  const [saving, setSaving] = useState(false);
 
   //animate button
-
   const [cancelPressed, setCancelPressed] = useState(false);
   const [cancelHover, setCancelHover] = useState(false);
-  
+
   const [saveHover, setSaveHover] = useState(false);
 
   const [isPressed, setIsPressed] = useState(false);
@@ -62,6 +75,9 @@ function EditUser() {
 
   // banner error di atas card (sesuai figma "Ups, Data User gagal diperbarui")
   const [showBanner, setShowBanner] = useState(false);
+  const [bannerMessage, setBannerMessage] = useState(
+    "Pastikan memasukkan data yang benar. Coba lagi!"
+  );
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -92,59 +108,87 @@ function EditUser() {
   const [passwordError, setPasswordError] = useState("");
   const [confirmError, setConfirmError] = useState("");
 
- useEffect(() => {
-  const existing = JSON.parse(localStorage.getItem("users")) || [];
+  // daftar role diambil dari backend (/api/roles) -> hanya Admin & Member
+  // (tidak ada lagi role hardcode seperti Staff / Guru)
+  const [roles, setRoles] = useState([]);
+  const [rolesLoading, setRolesLoading] = useState(true);
 
-  const found = existing.find((u) => String(u.id) === String(id));
-
-  if (!found) return;
-
-  let savedTitle = "";
-
-  // Prioritaskan titleFull
-  if (found.titleFull) {
-    savedTitle = found.titleFull;
-  } else {
-    switch (found.title) {
-      case "Tn":
-        savedTitle = "Tuan";
-        break;
-      case "Ny":
-        savedTitle = "Nyonya";
-        break;
-      case "Nn":
-        savedTitle = "Nona";
-        break;
-      case "Tuan":
-      case "Nyonya":
-      case "Nona":
-        savedTitle = found.title;
-        break;
-      default:
-        savedTitle = "";
-    }
-  }
-
-  setTitle(savedTitle);
-  setNama(found.nama || "");
-  setPhone(found.phone || "");
-  setEmail(found.email || "");
-  setRole(found.role || "");
-  setStatus(found.status || "Active");
-  setAlasanNonActive(found.alasanNonActive || "");
-
-  if (found.tanggal) {
-    try {
-      if (found.tanggal.includes("/")) {
-        setTanggal(parse(found.tanggal, "dd/MM/yyyy", new Date()));
-      } else {
-        setTanggal(new Date(found.tanggal));
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const res = await api.get("/api/roles");
+        setRoles(res.data?.data || []);
+      } catch (err) {
+        console.error("Gagal mengambil data role:", err);
+      } finally {
+        setRolesLoading(false);
       }
-    } catch {
-      setTanggal(null);
-    }
-  }
-}, [id]);
+    };
+
+    fetchRoles();
+  }, []);
+
+  // ambil data user yang mau diedit dari backend
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        setInitialLoading(true);
+        setLoadError("");
+
+        const res = await api.get(`/api/users/${id}`);
+        const found = res.data?.data || res.data;
+
+        if (!found) {
+          setLoadError("Data user tidak ditemukan.");
+          return;
+        }
+
+        setTitle(found.title || "");
+        setNama(found.nama || "");
+        setPhone(found.phone || "");
+        setEmail(found.email || "");
+
+        // sesuaikan: id role user saat ini. Coba beberapa kemungkinan nama field.
+        setRole(found.role_id ?? found.id_role ?? "");
+
+        const userStatus = isActiveStatus(found.status)
+  ? "Active"
+  : "Non Active";
+
+setStatus(userStatus);
+
+setAlasanNonActive(
+  found.alasan_non_active ??
+  found.alasan_nonactive ??
+  found.alasanNonActive ??
+  found.reason ??
+  ""
+);
+
+        // sesuaikan: format tanggal_lahir dari backend (default: yyyy-MM-dd)
+        if (found.tanggal_lahir) {
+          try {
+            if (found.tanggal_lahir.includes("/")) {
+              setTanggal(parse(found.tanggal_lahir, "dd/MM/yyyy", new Date()));
+            } else {
+              setTanggal(parse(found.tanggal_lahir, "yyyy-MM-dd", new Date()));
+            }
+          } catch {
+            setTanggal(null);
+          }
+        }
+      } catch (err) {
+        console.error("Gagal mengambil data user:", err);
+        setLoadError(
+          err.response?.data?.message || "Gagal mengambil data user dari server."
+        );
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    if (id) fetchUser();
+  }, [id]);
 
   // tombol aktif / nonaktif
   const isFormValid =
@@ -157,133 +201,205 @@ function EditUser() {
     (status !== "Non Active" || alasanNonActive.trim() !== "") &&
     (!resetPassword || (password !== "" && confirmPassword !== ""));
 
- const handleSubmit = (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  setShowBanner(false);
+    setShowBanner(false);
 
-  setNamaError("");
-  setPhoneError("");
-  setEmailError("");
-  setTanggalError("");
-  setRoleError("");
-  setAlasanError("");
-  setPasswordError("");
-  setConfirmError("");
+    setNamaError("");
+    setPhoneError("");
+    setEmailError("");
+    setTanggalError("");
+    setRoleError("");
+    setAlasanError("");
+    setPasswordError("");
+    setConfirmError("");
 
-  let valid = true;
+    let valid = true;
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const passRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const passRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
 
-  if (!nama.trim()) {
-    setNamaError("Nama lengkap wajib diisi");
-    valid = false;
-  }
-
-  if (!phone.trim()) {
-    setPhoneError("Nomor handphone wajib diisi");
-    valid = false;
-  } else if (phone.replace(/\D/g, "").length < 10) {
-    setPhoneError("Minimal terdiri dari 10 angka");
-    valid = false;
-  }
-
-  if (!email.trim()) {
-    setEmailError("Email wajib diisi");
-    valid = false;
-  } else if (!emailRegex.test(email)) {
-    setEmailError("Masukkan email yang valid");
-    valid = false;
-  }
-
-  if (!tanggal) {
-    setTanggalError("Tanggal lahir wajib diisi");
-    valid = false;
-  }
-
-  if (!role) {
-    setRoleError("Pilih role");
-    valid = false;
-  }
-
-  if (status === "Non Active" && !alasanNonActive.trim()) {
-    setAlasanError("Alasan non active wajib diisi");
-    valid = false;
-  }
-
-  if (resetPassword) {
-    if (!password) {
-      setPasswordError("Password wajib diisi");
-      valid = false;
-    } else if (!passRegex.test(password)) {
-      setPasswordError(
-        "Min 8 karakter, kombinasi huruf besar-kecil, angka & karakter khusus"
-      );
+    if (!nama.trim()) {
+      setNamaError("Nama lengkap wajib diisi");
       valid = false;
     }
 
-    if (!confirmPassword) {
-      setConfirmError("Konfirmasi password wajib diisi");
+    if (!phone.trim()) {
+      setPhoneError("Nomor handphone wajib diisi");
       valid = false;
-    } else if (password !== confirmPassword) {
-      setConfirmError("Kata sandi tidak cocok");
+    } else if (phone.replace(/\D/g, "").length < 10) {
+      setPhoneError("Minimal terdiri dari 10 angka");
       valid = false;
     }
-  }
 
-  if (!valid) {
-    setShowBanner(true);
-    return;
-  }
-
-  // ubah title menjadi singkatan untuk tabel
-  const shortTitle =
-    title === "Tuan"
-      ? "Tn"
-      : title === "Nyonya"
-      ? "Ny"
-      : "Nn";
-
-  const existing =
-    JSON.parse(localStorage.getItem("users")) || [];
-
-  const updated = existing.map((u) => {
-    if (String(u.id) === String(id)) {
-      return {
-        ...u,
-        title: shortTitle,
-        titleFull: title,
-        nama,
-        phone,
-        email,
-        tanggal: format(tanggal, "dd/MM/yyyy"),
-        role,
-        status,
-        alasanNonActive:
-          status === "Non Active"
-            ? alasanNonActive
-            : "",
-        ...(resetPassword ? { password } : {}),
-      };
+    if (!email.trim()) {
+      setEmailError("Email wajib diisi");
+      valid = false;
+    } else if (!emailRegex.test(email)) {
+      setEmailError("Masukkan email yang valid");
+      valid = false;
     }
 
-    return u;
-  });
+    if (!tanggal) {
+      setTanggalError("Tanggal lahir wajib diisi");
+      valid = false;
+    }
 
-  localStorage.setItem("users", JSON.stringify(updated));
+    if (!role) {
+      setRoleError("Pilih role");
+      valid = false;
+    }
 
-  setAlertType("success");
-  setAlertTitle("Berhasil!");
-  setAlertDescription("Data user berhasil diperbarui.");
-  setShowToast(true);
+    if (status === "Non Active" && !alasanNonActive.trim()) {
+      setAlasanError("Alasan non active wajib diisi");
+      valid = false;
+    }
 
-  setTimeout(() => {
-    setShowToast(false);
-    navigate("/user-management");
-  }, 2000);
+    if (resetPassword) {
+      if (!password) {
+        setPasswordError("Password wajib diisi");
+        valid = false;
+      } else if (!passRegex.test(password)) {
+        setPasswordError(
+          "Min 8 karakter, kombinasi huruf besar-kecil, angka & karakter khusus"
+        );
+        valid = false;
+      }
+
+      if (!confirmPassword) {
+        setConfirmError("Konfirmasi password wajib diisi");
+        valid = false;
+      } else if (password !== confirmPassword) {
+        setConfirmError("Kata sandi tidak cocok");
+        valid = false;
+      }
+    }
+
+    if (!valid) {
+      setBannerMessage("Pastikan memasukkan data yang benar. Coba lagi!");
+      setShowBanner(true);
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      const payload = {
+  title,
+  nama: nama.trim(),
+  phone,
+  email: email.trim().toLowerCase(),
+  tanggal_lahir: tanggal
+    ? format(tanggal, "yyyy-MM-dd")
+    : null,
+  role_id: role,
+  status: status.toLowerCase(),
+  alasan_non_active:
+    status === "Non Active"
+      ? alasanNonActive.trim()
+      : "",
+  ...(resetPassword ? { password } : {}),
 };
+
+      const res = await api.put(`/api/users/${id}`, payload);
+
+      setAlertType("success");
+      setAlertTitle("Berhasil!");
+      setAlertDescription(
+        res.data?.message || "Data user berhasil diperbarui."
+      );
+      setShowToast(true);
+
+      setTimeout(() => {
+        setSaving(false);
+        setShowToast(false);
+        navigate("/user-management");
+      }, 1800);
+    } catch (err) {
+      setSaving(false);
+
+      const statusCode = err.response?.status;
+      const message = err.response?.data?.message;
+
+      // email sudah terdaftar -> tunjukkan di field email
+      if (statusCode === 409) {
+        setEmailError(message || "Email sudah terdaftar");
+      }
+
+      setBannerMessage(
+        message || "Pastikan memasukkan data yang benar. Coba lagi!"
+      );
+      setShowBanner(true);
+    }
+  };
+
+  if (initialLoading) {
+    return (
+      <Container
+        fluid
+        style={{
+          background: "#F5F7FB",
+          minHeight: "100vh",
+          padding: "40px 0",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div className="text-center">
+          <Spinner animation="border" style={{ color: "#2538C8" }} />
+          <p className="mt-3" style={{ color: "#64748B" }}>
+            Memuat data user...
+          </p>
+        </div>
+      </Container>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <Container
+        fluid
+        style={{
+          background: "#F5F7FB",
+          minHeight: "100vh",
+          padding: "40px 0",
+        }}
+      >
+        <Row className="justify-content-center">
+          <Col xs={11} sm={9} md={7} lg={4} xl={4}>
+            <div
+              style={{
+                background: "#FFF2F2",
+                border: "1px solid #FFD4D4",
+                color: "#D93025",
+                borderRadius: "12px",
+                padding: "16px",
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "10px",
+              }}
+            >
+              <FaExclamationTriangle color="#DC2626" style={{ marginTop: "3px" }} />
+              <div style={{ flex: 1, fontSize: "14px", lineHeight: "20px" }}>
+                {loadError}
+              </div>
+            </div>
+
+            <Button
+              className="mt-3"
+              variant="outline-secondary"
+              onClick={() => navigate("/user-management")}
+            >
+              Kembali
+            </Button>
+          </Col>
+        </Row>
+      </Container>
+    );
+  }
 
   return (
     <Container
@@ -392,8 +508,7 @@ function EditUser() {
               />
 
               <div style={{ flex: 1, fontSize: "14px", lineHeight: "20px" }}>
-                <strong>Ups, Data User gagal diperbarui.</strong> Pastikan
-                memasukkan data yang benar. Coba lagi!
+                <strong>Ups, Data User gagal diperbarui.</strong> {bannerMessage}
               </div>
 
               <FaTimes
@@ -519,7 +634,7 @@ function EditUser() {
                   >
                     No. Handphone
                   </Form.Label>
-                
+
                   <div
                     style={{
                       display: "flex",
@@ -551,7 +666,7 @@ function EditUser() {
                       >
                         Kode Negara
                       </span>
-                
+
                       <div
                         style={{
                           display: "flex",
@@ -571,7 +686,7 @@ function EditUser() {
                             boxShadow: "0 1px 2px rgba(0,0,0,.08)",
                           }}
                         />
-                
+
                         <span
                           style={{
                             fontSize: "14px",
@@ -583,7 +698,7 @@ function EditUser() {
                         </span>
                       </div>
                     </div>
-                
+
                     {/* Input */}
                     <input
                       type="tel"
@@ -591,11 +706,11 @@ function EditUser() {
                       value={phone}
                       onChange={(e) => {
                         let value = e.target.value.replace(/\D/g, "");
-                
+
                         if (value.startsWith("0")) {
                           value = value.substring(1);
                         }
-                
+
                         setPhone(value);
                       }}
                       style={{
@@ -611,7 +726,7 @@ function EditUser() {
                       }}
                     />
                   </div>
-                
+
                   {phoneError && (
                     <div
                       style={{
@@ -624,7 +739,7 @@ function EditUser() {
                     </div>
                   )}
                 </Form.Group>
-                
+
 
                 {/* Email */}
                 <Form.Group className="mb-3">
@@ -724,7 +839,7 @@ function EditUser() {
                   )}
                 </Form.Group>
 
-                {/* Roles */}
+                {/* Roles - diambil dari backend (/api/roles), hanya Admin & Member */}
                 <Form.Group className="mb-3">
                   <Form.Label
                     style={{
@@ -739,14 +854,21 @@ function EditUser() {
                   <Form.Select
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
+                    disabled={rolesLoading}
                     style={{
                       height: "48px",
                       borderRadius: "12px",
                     }}
                   >
-                    <option value="">Pilih Role</option>
-                    <option>Admin</option>
-                    <option>Member</option>
+                    <option value="" disabled hidden>
+                      {rolesLoading ? "Memuat role..." : "Pilih Role"}
+                    </option>
+
+                    {roles.map((r) => (
+                      <option key={r.id_role} value={r.id_role}>
+                        {r.nama_role}
+                      </option>
+                    ))}
                   </Form.Select>
 
                   {roleError && (
@@ -763,128 +885,128 @@ function EditUser() {
                 </Form.Group>
 
                 {/* Status */}
-<Form.Group className="mb-3">
-  <Form.Label
-    style={{
-      fontSize: "13px",
-      fontWeight: "600",
-      marginBottom: "6px",
-    }}
-  >
-    Status
-  </Form.Label>
+                <Form.Group className="mb-3">
+                  <Form.Label
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: "600",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    Status
+                  </Form.Label>
 
-  <Form.Select
-    value={status}
-    onChange={(e) => {
-      setStatus(e.target.value);
+                  <Form.Select
+                    value={status}
+                    onChange={(e) => {
+                      setStatus(e.target.value);
 
-      // ketika kembali Active, kosongkan alasan
-      if (e.target.value === "Active") {
-        setAlasanNonActive("");
-        setAlasanError("");
-      }
-    }}
-    style={{
-      height: "48px",
-      borderRadius: "12px",
-      border: "1px solid #D9DDE7",
-      boxShadow: "none",
-      fontSize: "15px",
-      fontWeight: "500",
-    }}
-  >
-    <option value="Active">Active</option>
-    <option value="Non Active">Non Active</option>
-  </Form.Select>
-</Form.Group>
+                      // ketika kembali Active, kosongkan alasan
+                      if (e.target.value === "Active") {
+                        setAlasanNonActive("");
+                        setAlasanError("");
+                      }
+                    }}
+                    style={{
+                      height: "48px",
+                      borderRadius: "12px",
+                      border: "1px solid #D9DDE7",
+                      boxShadow: "none",
+                      fontSize: "15px",
+                      fontWeight: "500",
+                    }}
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Non Active">Non Active</option>
+                  </Form.Select>
+                </Form.Group>
 
-               {/* Alasan Non Active - hanya muncul jika status Non Active */}
-{status === "Non Active" && (
-  <Form.Group className="mb-3">
-    <Form.Label
-      style={{
-        fontSize: "13px",
-        fontWeight: "600",
-        marginBottom: "6px",
-      }}
-    >
-      Alasan Non Active
-    </Form.Label>
+                {/* Alasan Non Active - hanya muncul jika status Non Active */}
+                {status === "Non Active" && (
+                  <Form.Group className="mb-3">
+                    <Form.Label
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: "600",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      Alasan Non Active
+                    </Form.Label>
 
-    <div style={{ position: "relative" }}>
-      <Form.Control
-        as="textarea"
-        rows={3}
-        maxLength={300}
-        placeholder="Masukkan Alasan Non Active"
-        value={alasanNonActive}
-        onChange={(e) => {
-          setAlasanNonActive(e.target.value);
-          setAlasanError("");
-        }}
-        style={{
-          fontSize: "15px",
-          fontWeight: "500",
-          padding: "12px 36px 12px 14px",
-          borderRadius: "12px",
-          border: alasanError
-            ? "1px solid #E53935"
-            : "1px solid #D9DDE7",
-          boxShadow: "none",
-          resize: "none",
-        }}
-      />
+                    <div style={{ position: "relative" }}>
+                      <Form.Control
+                        as="textarea"
+                        rows={3}
+                        maxLength={300}
+                        placeholder="Masukkan Alasan Non Active"
+                        value={alasanNonActive}
+                        onChange={(e) => {
+                          setAlasanNonActive(e.target.value);
+                          setAlasanError("");
+                        }}
+                        style={{
+                          fontSize: "15px",
+                          fontWeight: "500",
+                          padding: "12px 36px 12px 14px",
+                          borderRadius: "12px",
+                          border: alasanError
+                            ? "1px solid #E53935"
+                            : "1px solid #D9DDE7",
+                          boxShadow: "none",
+                          resize: "none",
+                        }}
+                      />
 
-      {alasanNonActive && (
-        <FaTimes
-          onClick={() => {
-            setAlasanNonActive("");
-            setAlasanError("");
-          }}
-          style={{
-            position: "absolute",
-            right: "15px",
-            top: "14px",
-            cursor: "pointer",
-            color: "#B6B6B6",
-          }}
-        />
-      )}
-    </div>
+                      {alasanNonActive && (
+                        <FaTimes
+                          onClick={() => {
+                            setAlasanNonActive("");
+                            setAlasanError("");
+                          }}
+                          style={{
+                            position: "absolute",
+                            right: "15px",
+                            top: "14px",
+                            cursor: "pointer",
+                            color: "#B6B6B6",
+                          }}
+                        />
+                      )}
+                    </div>
 
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginTop: "6px",
-        fontSize: "12px",
-      }}
-    >
-      <span style={{ color: "#667085" }}>
-        Masukkan alasan mengapa user dinonaktifkan.
-      </span>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginTop: "6px",
+                        fontSize: "12px",
+                      }}
+                    >
+                      <span style={{ color: "#667085" }}>
+                        Masukkan alasan mengapa user dinonaktifkan.
+                      </span>
 
-      <span style={{ color: "#98A2B3" }}>
-        {alasanNonActive.length}/300
-      </span>
-    </div>
+                      <span style={{ color: "#98A2B3" }}>
+                        {alasanNonActive.length}/300
+                      </span>
+                    </div>
 
-    {alasanError && (
-      <div
-        style={{
-          color: "#E53935",
-          fontSize: "12px",
-          marginTop: "6px",
-          fontWeight: "500",
-        }}
-      >
-        {alasanError}
-      </div>
-    )}
-  </Form.Group>
-)}
+                    {alasanError && (
+                      <div
+                        style={{
+                          color: "#E53935",
+                          fontSize: "12px",
+                          marginTop: "6px",
+                          fontWeight: "500",
+                        }}
+                      >
+                        {alasanError}
+                      </div>
+                    )}
+                  </Form.Group>
+                )}
 
                 <div
                   style={{
@@ -1039,13 +1161,14 @@ function EditUser() {
                 <div className="d-flex gap-3 mt-4">
                   <Button
                     type="button"
+                    disabled={saving}
                     onMouseEnter={() => setCancelHover(true)}
-  onMouseLeave={() => {
-    setCancelHover(false);
-    setCancelPressed(false);
-  }}
-  onMouseDown={() => setCancelPressed(true)}
-  onMouseUp={() => setCancelPressed(false)}
+                    onMouseLeave={() => {
+                      setCancelHover(false);
+                      setCancelPressed(false);
+                    }}
+                    onMouseDown={() => setCancelPressed(true)}
+                    onMouseUp={() => setCancelPressed(false)}
                     onClick={() => {
                       setAlertType("warning");
                       setAlertTitle("Perubahan dibatalkan");
@@ -1064,19 +1187,19 @@ function EditUser() {
                       height: "56px",
                       borderRadius: "14px",
                       border: "1px solid #CBD5E1",
-                      background: "#F8FAFC",
+                      background: cancelHover ? "#EEF2F7" : "#F8FAFC",
                       color: "#475569",
                       fontWeight: 700,
                       fontSize: "16px",
-                       transition: "all .25s ease",
-    transform: cancelPressed
-      ? "scale(.96)"
-      : cancelHover
-      ? "translateY(-2px)"
-      : "scale(1)",
-    boxShadow: cancelHover
-      ? "0 10px 24px rgba(0,0,0,.08)"
-      : "0 2px 6px rgba(0,0,0,.05)",
+                      transition: "all .25s ease",
+                      transform: cancelPressed
+                        ? "scale(.96)"
+                        : cancelHover
+                        ? "translateY(-2px)"
+                        : "scale(1)",
+                      boxShadow: cancelHover
+                        ? "0 10px 24px rgba(0,0,0,.08)"
+                        : "0 2px 6px rgba(0,0,0,.05)",
                     }}
                   >
                     BATAL
@@ -1084,14 +1207,14 @@ function EditUser() {
 
                   <Button
                     type="submit"
-                    disabled={!isFormValid}
+                    disabled={!isFormValid || saving}
                     onMouseEnter={() => setSaveHover(true)}
-onMouseLeave={() => {
-  setSaveHover(false);
-  setIsPressed(false);
-}}
-onMouseDown={() => setIsPressed(true)}
-onMouseUp={() => setIsPressed(false)}
+                    onMouseLeave={() => {
+                      setSaveHover(false);
+                      setIsPressed(false);
+                    }}
+                    onMouseDown={() => setIsPressed(true)}
+                    onMouseUp={() => setIsPressed(false)}
                     style={{
                       flex: 1,
                       height: "56px",
@@ -1101,26 +1224,38 @@ onMouseUp={() => setIsPressed(false)}
                       color: "#FFFFFF",
                       fontWeight: "700",
                       fontSize: "16px",
-                      cursor: isFormValid ? "pointer" : "not-allowed",
+                      cursor: isFormValid && !saving ? "pointer" : "not-allowed",
                       transition:
-      "transform .18s ease, box-shadow .25s ease, background .25s ease",
+                        "transform .18s ease, box-shadow .25s ease, background .25s ease",
 
-    transform: isPressed
-      ? "scale(.96)"
-      : saveHover
-      ? "translateY(-2px)"
-      : "scale(1)",
+                      transform: isPressed
+                        ? "scale(.96)"
+                        : saveHover
+                        ? "translateY(-2px)"
+                        : "scale(1)",
 
-    boxShadow:
-      saveHover && isFormValid
-        ? "0 14px 30px rgba(36,56,200,.35)"
-        : isFormValid
-        ? "0 8px 20px rgba(36,56,200,.25)"
-        : "none",
+                      boxShadow:
+                        saveHover && isFormValid
+                          ? "0 14px 30px rgba(36,56,200,.35)"
+                          : isFormValid
+                          ? "0 8px 20px rgba(36,56,200,.25)"
+                          : "none",
                       opacity: isFormValid ? 1 : 0.7,
+
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "10px",
                     }}
                   >
-                    SIMPAN PERUBAHAN
+                    {saving && (
+                      <Spinner
+                        animation="border"
+                        size="sm"
+                        style={{ color: "#FFF" }}
+                      />
+                    )}
+                    {saving ? "MENYIMPAN..." : "SIMPAN PERUBAHAN"}
                   </Button>
                 </div>
               </Form>
