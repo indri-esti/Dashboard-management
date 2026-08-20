@@ -304,20 +304,27 @@ function UserManagement() {
       );
     })
     .sort((a, b) => {
-      const dateA = new Date(a.created_at);
-      const dateB = new Date(b.created_at);
+      const dateA = new Date(a.created_at || 0).getTime();
+      const dateB = new Date(b.created_at || 0).getTime();
 
-      const timeA = isNaN(dateA.getTime()) ? 0 : dateA.getTime();
-      const timeB = isNaN(dateB.getTime()) ? 0 : dateB.getTime();
-
-      // Data terbaru selalu berada di paling atas.
-      if (timeB !== timeA) {
-        return timeB - timeA;
+      // Data terbaru selalu di atas. Jika tanggal sama/tidak tersedia,
+      // gunakan id_user sebagai penentu urutan data terbaru.
+      if (dateB !== dateA) {
+        return dateB - dateA;
       }
 
-      // Jika waktu sama, gunakan ID user sebagai urutan kedua
-      // agar user yang baru dibuat tetap berada di atas.
-      return Number(b.id_user || 0) - Number(a.id_user || 0);
+      const idA = Number(a.id_user);
+      const idB = Number(b.id_user);
+
+      if (!Number.isNaN(idA) && !Number.isNaN(idB)) {
+        return idB - idA;
+      }
+
+      return String(b.id_user ?? "").localeCompare(
+        String(a.id_user ?? ""),
+        undefined,
+        { numeric: true }
+      );
     });
 
   // ===========================
