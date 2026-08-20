@@ -6,11 +6,12 @@ function MainLayout() {
     <div
       style={{
         display: "flex",
-        minHeight: "100vh",
+        height: "100vh",     // kunci tinggi ke viewport
+        overflow: "hidden",  // cegah body ikut scroll
         background: "#F5F7FB",
       }}
     >
-      {/* Sidebar */}
+      {/* Sidebar (sticky-nya sudah diatur di dalam Sidebar.jsx) */}
       <Sidebar />
 
       {/* Content */}
@@ -19,6 +20,8 @@ function MainLayout() {
           flex: 1,
           display: "flex",
           flexDirection: "column",
+          height: "100vh",
+          overflow: "hidden",
         }}
       >
         {/* Isi halaman */}
@@ -26,7 +29,7 @@ function MainLayout() {
           style={{
             flex: 1,
             padding: "30px",
-            overflowY: "auto",
+            overflowY: "auto", // ini yang jadi area scroll
           }}
         >
           <Outlet />

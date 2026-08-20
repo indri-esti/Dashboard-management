@@ -204,6 +204,8 @@ function Sidebar() {
         width: "clamp(250px, 20vw, 290px)",
         height: "100vh",
         minHeight: "100vh",
+        position: "sticky",
+        top: 0,
         background:
           "linear-gradient(180deg, #2539A8 0%, #202F91 48%, #1B286E 100%)",
         boxShadow:
@@ -214,7 +216,6 @@ function Sidebar() {
         flexDirection: "column",
         padding: "22px 16px",
         color: "#fff",
-        position: "relative",
         overflow: "hidden",
         boxSizing: "border-box",
         flexShrink: 0,
