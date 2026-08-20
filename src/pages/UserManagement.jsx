@@ -356,7 +356,451 @@ function UserManagement() {
   const totalMembers = dataUsers.length;
 
   return (
-    <Container fluid className="py-2">
+    <Container fluid className="py-3 user-management-page">
+
+      <style>{`
+        .user-management-page {
+          --um-primary: #4f46e5;
+          --um-primary-dark: #4338ca;
+          --um-text: #0f172a;
+          --um-muted: #64748b;
+          --um-border: #e8edf5;
+          --um-surface: #ffffff;
+          --um-bg: #f6f8fc;
+          color: var(--um-text);
+        }
+
+        .user-management-page .um-section-title {
+          font-weight: 800;
+          letter-spacing: -0.5px;
+        }
+
+        .user-management-page > .d-flex.justify-content-between {
+          padding: 8px 4px 6px;
+        }
+
+        .user-management-page > .d-flex.justify-content-between h2 {
+          font-size: clamp(1.55rem, 2.4vw, 2rem) !important;
+          letter-spacing: -0.7px;
+          margin-bottom: 6px;
+        }
+
+        .user-management-page > .d-flex.justify-content-between p {
+          font-size: 0.92rem;
+        }
+
+        .user-management-page .card {
+          border-color: var(--um-border) !important;
+          box-shadow: 0 8px 28px rgba(15, 23, 42, 0.055) !important;
+        }
+
+        /* Statistic cards */
+        .user-management-page .row.g-4.mb-4 > .col-md-6 > .card {
+          position: relative;
+          border-radius: 20px !important;
+          min-height: 132px !important;
+          background: var(--um-surface) !important;
+          border: 1px solid var(--um-border) !important;
+          overflow: hidden;
+        }
+
+        .user-management-page .row.g-4.mb-4 > .col-md-6:first-child > .card::before,
+        .user-management-page .row.g-4.mb-4 > .col-md-6:last-child > .card::before {
+          content: "";
+          position: absolute;
+          inset: 0 auto 0 0;
+          width: 5px;
+          background: linear-gradient(180deg, #6366f1, #4f46e5);
+        }
+
+        .user-management-page .row.g-4.mb-4 > .col-md-6:last-child > .card::before {
+          background: linear-gradient(180deg, #f59e0b, #f97316);
+        }
+
+        .user-management-page .row.g-4.mb-4 .card-body {
+          padding: 24px 26px !important;
+        }
+
+        .user-management-page .row.g-4.mb-4 .card-body > div > div:first-child {
+          letter-spacing: 0.7px !important;
+          font-size: 11px !important;
+          color: #94a3b8 !important;
+        }
+
+        .user-management-page .row.g-4.mb-4 h2 {
+          font-size: 2.25rem !important;
+          letter-spacing: -1px;
+        }
+
+        .user-management-page .row.g-4.mb-4 .card-body > div > div:last-child {
+          width: 58px !important;
+          height: 58px !important;
+          border-radius: 17px !important;
+          box-shadow: none !important;
+        }
+
+        /* Main application surface */
+        .user-management-page > .card {
+          border-radius: 22px !important;
+          background: rgba(255,255,255,.96) !important;
+        }
+
+        .user-management-page > .card > .card-body {
+          padding: 28px !important;
+        }
+
+        /* Tabs */
+        .user-management-page > .card > .card-body > div[style*="border-bottom"] {
+          gap: 8px !important;
+          border-bottom: 1px solid var(--um-border) !important;
+          margin-bottom: 22px !important;
+        }
+
+        .user-management-page > .card > .card-body > div[style*="border-bottom"] p {
+          padding: 10px 18px 13px !important;
+          margin: 0 !important;
+          border-bottom-width: 3px !important;
+          border-bottom-style: solid !important;
+          border-bottom-color: transparent !important;
+          border-radius: 9px 9px 0 0;
+          font-size: 0.9rem;
+          transition: all .2s ease;
+        }
+
+        .user-management-page > .card > .card-body > div[style*="border-bottom"] p:hover {
+          background: #f8faff;
+          color: var(--um-primary) !important;
+        }
+
+        /* Search/filter controls */
+        .user-management-page .input-group {
+          border-radius: 13px !important;
+          border-color: #e2e8f0 !important;
+          background: #fff !important;
+          transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+        }
+
+        .user-management-page .input-group:focus-within {
+          border-color: #a5b4fc !important;
+          box-shadow: 0 0 0 4px rgba(99,102,241,.10) !important;
+        }
+
+        .user-management-page .input-group-text {
+          padding-left: 16px !important;
+          padding-right: 8px !important;
+          color: #94a3b8 !important;
+          border-color: #e2e8f0 !important;
+        }
+
+        .user-management-page .form-control {
+          font-size: 0.92rem !important;
+          color: #334155 !important;
+        }
+
+        .user-management-page .form-control::placeholder {
+          color: #a0aec0;
+        }
+
+        .user-management-page .row.align-items-center.mb-4 .btn {
+          border-radius: 13px !important;
+          background: linear-gradient(135deg, #6366f1, #4f46e5) !important;
+          height: 52px !important;
+          border: none !important;
+          box-shadow: 0 8px 18px rgba(79,70,229,.22) !important;
+          font-size: .9rem;
+        }
+
+        .user-management-page .row.align-items-center.mb-4 .btn:hover {
+          background: linear-gradient(135deg, #4f46e5, #4338ca) !important;
+          box-shadow: 0 12px 24px rgba(79,70,229,.28) !important;
+        }
+
+        /* Table */
+        .user-management-page .table-responsive {
+          border: 1px solid var(--um-border);
+          border-radius: 16px;
+          overflow-x: auto;
+          background: #fff;
+        }
+
+        .user-management-page table {
+          min-width: 900px;
+        }
+
+        .user-management-page table thead {
+          background: #f8fafc !important;
+        }
+
+        .user-management-page table th {
+          background: #f8fafc !important;
+          color: #94a3b8 !important;
+          font-size: 10px !important;
+          font-weight: 800 !important;
+          letter-spacing: .8px !important;
+          padding: 15px 16px !important;
+          white-space: nowrap;
+          border-bottom: 1px solid var(--um-border) !important;
+        }
+
+        .user-management-page table td {
+          padding: 16px !important;
+          font-size: 13px !important;
+          color: #475569 !important;
+          border-bottom: 1px solid #f0f3f8 !important;
+        }
+
+        .user-management-page table tbody tr {
+          transition: background .18s ease;
+        }
+
+        .user-management-page table tbody tr:hover {
+          background: #fafbff !important;
+        }
+
+        .user-management-page table tbody tr:last-child td {
+          border-bottom: none !important;
+        }
+
+        .user-management-page table td:nth-child(3) {
+          font-weight: 700 !important;
+          color: #1e293b !important;
+        }
+
+        .user-management-page table td:nth-child(7) .badge {
+          background: #eef2ff !important;
+          color: #4f46e5 !important;
+          border: 1px solid #e0e7ff !important;
+          border-radius: 999px !important;
+          font-size: 11px !important;
+          padding: 6px 10px !important;
+        }
+
+        /* Action icons */
+        .user-management-page table td:last-child > div {
+          gap: 7px !important;
+        }
+
+        .user-management-page table td:last-child span {
+          width: 34px;
+          height: 34px;
+          border-radius: 10px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          background: #f8fafc;
+          transition: all .18s ease;
+        }
+
+        .user-management-page table td:last-child span:hover {
+          background: #eef2ff;
+          transform: translateY(-1px);
+        }
+
+        .user-management-page table td:last-child span:last-child:hover {
+          background: #fef2f2;
+        }
+
+        .user-management-page table td:last-child svg {
+          font-size: 15px !important;
+        }
+
+        /* Pagination */
+        .user-management-page .pagination {
+          gap: 5px;
+        }
+
+        .user-management-page .pagination .page-link {
+          min-width: 36px;
+          height: 36px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid #e2e8f0 !important;
+          border-radius: 10px !important;
+          color: #64748b;
+          background: #fff;
+          font-size: 12px;
+          box-shadow: none;
+        }
+
+        .user-management-page .pagination .page-item.active .page-link {
+          background: #4f46e5 !important;
+          border-color: #4f46e5 !important;
+          color: #fff !important;
+        }
+
+        /* Modals */
+        .user-management-page .modal-content {
+          border: 1px solid var(--um-border) !important;
+          border-radius: 22px !important;
+          box-shadow: 0 24px 70px rgba(15,23,42,.18) !important;
+          overflow: hidden;
+        }
+
+        .user-management-page .modal-body {
+          border-radius: 22px !important;
+        }
+
+        .user-management-page .modal h4 {
+          color: #0f172a;
+          letter-spacing: -.3px;
+        }
+
+        .user-management-page .modal .btn {
+          border-radius: 12px !important;
+          font-weight: 700 !important;
+          font-size: .82rem;
+        }
+
+        /* Empty/loading states */
+        .user-management-page .spinner-border {
+          border-width: 2px;
+        }
+
+        /* Calendar */
+        .user-management-page .react-calendar {
+          border: none;
+          width: 100%;
+          max-width: 360px;
+          font-family: inherit;
+        }
+
+        .user-management-page .react-calendar button {
+          border-radius: 8px;
+        }
+
+        .user-management-page .react-calendar__tile--active {
+          background: #4f46e5 !important;
+          color: white !important;
+        }
+
+        .user-management-page .react-calendar__tile--now {
+          background: #eef2ff;
+          color: #4f46e5;
+        }
+
+        @media (max-width: 991.98px) {
+          .user-management-page > .card > .card-body {
+            padding: 20px !important;
+          }
+
+          .user-management-page .row.g-4.mb-4 {
+            gap: 12px !important;
+          }
+        }
+
+        @media (max-width: 767.98px) {
+          .user-management-page {
+            padding: 10px !important;
+          }
+
+          .user-management-page > .d-flex.justify-content-between {
+            padding: 4px 2px 2px;
+            margin-bottom: 18px !important;
+          }
+
+          .user-management-page > .d-flex.justify-content-between p {
+            font-size: .82rem;
+            line-height: 1.45;
+          }
+
+          .user-management-page .row.g-4.mb-4 > .col-md-6 > .card {
+            min-height: 112px !important;
+            border-radius: 17px !important;
+          }
+
+          .user-management-page .row.g-4.mb-4 .card-body {
+            padding: 19px 21px !important;
+          }
+
+          .user-management-page .row.g-4.mb-4 h2 {
+            font-size: 1.9rem !important;
+          }
+
+          .user-management-page .row.g-4.mb-4 .card-body > div > div:last-child {
+            width: 50px !important;
+            height: 50px !important;
+            border-radius: 15px !important;
+          }
+
+          .user-management-page > .card {
+            border-radius: 18px !important;
+          }
+
+          .user-management-page > .card > .card-body {
+            padding: 16px !important;
+          }
+
+          .user-management-page > .card > .card-body > div[style*="border-bottom"] {
+            margin-left: -2px;
+            margin-right: -2px;
+            gap: 2px !important;
+          }
+
+          .user-management-page > .card > .card-body > div[style*="border-bottom"] p {
+            padding: 9px 13px 12px !important;
+            font-size: .82rem;
+          }
+
+          .user-management-page .row.align-items-center.mb-4 {
+            margin-bottom: 18px !important;
+          }
+
+          .user-management-page .row.align-items-center.mb-4 .text-end {
+            text-align: left !important;
+          }
+
+          .user-management-page .row.align-items-center.mb-4 .btn {
+            width: 100%;
+          }
+
+          .user-management-page .table-responsive {
+            border-radius: 13px;
+          }
+
+          .user-management-page table th,
+          .user-management-page table td {
+            padding: 13px 12px !important;
+          }
+
+          .user-management-page .modal-body {
+            padding: 25px !important;
+          }
+
+          .user-management-page .calendar-modal .modal-body {
+            padding: 20px !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .user-management-page > .d-flex.justify-content-between h2 {
+            font-size: 1.35rem !important;
+          }
+
+          .user-management-page .row.g-4.mb-4 h2 {
+            font-size: 1.75rem !important;
+          }
+
+          .user-management-page .row.g-4.mb-4 .card-body > div > div:last-child {
+            width: 46px !important;
+            height: 46px !important;
+          }
+
+          .user-management-page .row.g-4.mb-4 .card-body > div > div:last-child svg {
+            font-size: 22px !important;
+          }
+
+          .user-management-page .modal .d-flex.justify-content-between {
+            flex-direction: column-reverse;
+            gap: 10px;
+          }
+
+          .user-management-page .modal .d-flex.justify-content-between .btn {
+            width: 100% !important;
+          }
+        }
+      `}</style>
+
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
