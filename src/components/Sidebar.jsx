@@ -557,10 +557,10 @@ function Sidebar() {
 
                 <Nav.Link
                   as={Link}
-                  to="/kelas"
+                  to="/master-data/kelas"
                   style={submenuStyle(
                     location.pathname ===
-                      "/kelas"
+                      "/master-data/kelas"
                   )}
                 >
                   <MdOutlineSchool

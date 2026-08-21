@@ -7,6 +7,7 @@ import AddUser from "./pages/AddUser";
 import EditUser from "./pages/EditUser";
 import Profile from "./pages/Profile";
 import Register from "./pages/Register";
+import Kelas from "./pages/MasterData/Kelas";
 
 function App() {
   return (
@@ -25,6 +26,12 @@ function App() {
         <Route
           path="/dashboard"
           element={<Navigate to="/user-management" replace />}
+        />
+
+        {/*Master Data - Kelas*/}
+        <Route
+          path="/master-data/kelas"
+          element={<Kelas />}
         />
       </Route>
 
@@ -53,6 +60,7 @@ function App() {
         path="/register"
         element={<Register />}
       />
+
     </Routes>
   );
 }
