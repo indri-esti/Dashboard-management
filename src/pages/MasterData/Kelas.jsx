@@ -38,9 +38,7 @@ const DUMMY_KELAS = [
   {
     id_kelas: 1,
     nama_kelas: "React Fundamental",
-    kategori: "Frontend Development",
-    instruktur: "Budi Santoso",
-    jumlah_sesi: 12,
+    roles: "Member",
     deskripsi:
       "Belajar dasar React mulai dari komponen, state, hingga routing.",
     status: "active",
@@ -50,9 +48,7 @@ const DUMMY_KELAS = [
   {
     id_kelas: 2,
     nama_kelas: "Python untuk Data Analyst",
-    kategori: "Data Science",
-    instruktur: "Siti Rahma",
-    jumlah_sesi: 16,
+    roles: "Member",
     deskripsi:
       "Analisis data menggunakan Python, Pandas, dan visualisasi data.",
     status: "active",
@@ -62,9 +58,7 @@ const DUMMY_KELAS = [
   {
     id_kelas: 3,
     nama_kelas: "UI/UX Design Dasar",
-    kategori: "Design",
-    instruktur: "Andi Prasetyo",
-    jumlah_sesi: 10,
+    roles: "Admin",
     deskripsi: "Prinsip dasar UI/UX, wireframing, dan prototyping.",
     status: "non active",
     created_at: "2026-03-15",
@@ -73,9 +67,7 @@ const DUMMY_KELAS = [
   {
     id_kelas: 4,
     nama_kelas: "Falcon Framework untuk Backend",
-    kategori: "Backend Development",
-    instruktur: "Dewi Lestari",
-    jumlah_sesi: 14,
+    roles: "Admin",
     deskripsi: "Membangun REST API dengan Python Falcon dan MySQL.",
     status: "active",
     created_at: "2026-08-01",
@@ -84,9 +76,7 @@ const DUMMY_KELAS = [
   {
     id_kelas: 5,
     nama_kelas: "Digital Marketing untuk Pemula",
-    kategori: "Marketing",
-    instruktur: "Rian Hidayat",
-    jumlah_sesi: 8,
+    roles: "Member",
     deskripsi: "Dasar-dasar digital marketing, SEO, dan social media ads.",
     status: "non active",
     created_at: "2026-01-20",
@@ -95,9 +85,7 @@ const DUMMY_KELAS = [
   {
     id_kelas: 6,
     nama_kelas: "Mobile App dengan React Native",
-    kategori: "Mobile Development",
-    instruktur: "Budi Santoso",
-    jumlah_sesi: 18,
+    roles: "Member",
     deskripsi: "Membangun aplikasi mobile cross-platform dengan React Native.",
     status: "active",
     created_at: "2026-05-28",
@@ -279,8 +267,7 @@ function Kelas() {
 
       return (
         (item.nama_kelas || "").toLowerCase().includes(keyword) ||
-        (item.kategori || "").toLowerCase().includes(keyword) ||
-        (item.instruktur || "").toLowerCase().includes(keyword)
+        (item.roles || "").toLowerCase().includes(keyword)
       );
     })
     .filter((item) => {
@@ -383,7 +370,7 @@ function Kelas() {
         }
 
         .kelas-page table {
-          min-width: 950px;
+          min-width: 700px;
         }
 
         .kelas-page table th {
@@ -786,9 +773,7 @@ function Kelas() {
                   <tr>
                     <th style={thStyle}>NO.</th>
                     <th style={thStyle}>NAMA KELAS</th>
-                    <th style={thStyle}>KATEGORI</th>
-                    <th style={thStyle}>INSTRUKTUR</th>
-                    <th style={thStyle}>SESI</th>
+                    <th style={thStyle}>ROLES</th>
 
                     {tab === "nonactive" && (
                       <th style={thStyle}>ALASAN</th>
@@ -830,16 +815,8 @@ function Kelas() {
                               color: "#4f46e5",
                             }}
                           >
-                            {item.kategori || "-"}
+                            {item.roles || "-"}
                           </Badge>
-                        </td>
-
-                        <td style={tdStyle}>{item.instruktur || "-"}</td>
-
-                        <td style={tdStyle}>
-                          {item.jumlah_sesi
-                            ? `${item.jumlah_sesi}x`
-                            : "-"}
                         </td>
 
                         {tab === "nonactive" && (
@@ -935,7 +912,7 @@ function Kelas() {
                   ) : (
                     <tr>
                       <td
-                        colSpan={tab === "nonactive" ? 7 : 6}
+                        colSpan={tab === "nonactive" ? 6 : 5}
                         style={{
                           padding: "60px 20px",
                           textAlign: "center",
@@ -1047,25 +1024,9 @@ function Kelas() {
           </Row>
 
           <Row className="mb-3">
-            <Col xs={5}>Kategori</Col>
+            <Col xs={5}>Roles</Col>
             <Col xs={7} className="text-end">
-              {selectedKelas?.kategori || "-"}
-            </Col>
-          </Row>
-
-          <Row className="mb-3">
-            <Col xs={5}>Instruktur</Col>
-            <Col xs={7} className="text-end">
-              {selectedKelas?.instruktur || "-"}
-            </Col>
-          </Row>
-
-          <Row className="mb-3">
-            <Col xs={5}>Jumlah Sesi</Col>
-            <Col xs={7} className="text-end">
-              {selectedKelas?.jumlah_sesi
-                ? `${selectedKelas.jumlah_sesi}x pertemuan`
-                : "-"}
+              {selectedKelas?.roles || "-"}
             </Col>
           </Row>
 
