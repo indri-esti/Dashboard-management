@@ -85,7 +85,6 @@ function Login() {
         // =========================================================
         // ADMIN
         // =========================================================
-        // Admin tetap masuk ke User Management seperti sebelumnya.
         if (role === ALLOWED_ROLE) {
           localStorage.setItem("user", JSON.stringify(user));
 
@@ -104,8 +103,6 @@ function Login() {
         // =========================================================
         // MEMBER
         // =========================================================
-        // Member hasil Register tetap boleh login.
-        // Tetapi tidak boleh masuk ke User Management.
         localStorage.setItem("user", JSON.stringify(user));
 
         await Swal.fire({
@@ -116,9 +113,6 @@ function Login() {
           showConfirmButton: false,
         });
 
-        // JANGAN arahkan ke "/"
-        // karena "/" adalah halaman Login.
-        // Member diarahkan ke Dashboard.
         window.location.href = "/dashboard";
       } else {
         triggerToast(
@@ -249,118 +243,139 @@ function Login() {
               </p>
 
               <Form onSubmit={handleLogin}>
-                <div className="position-relative mb-4">
-                  <Form.Group className="mb-4">
-                    <div
+                {/* EMAIL */}
+                <Form.Group className="mb-4">
+                  <Form.Label
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      color: "#31353F",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    Email
+                  </Form.Label>
+
+                  <div
+                    style={{
+                      position: "relative",
+                    }}
+                  >
+                    <Form.Control
+                      type="text"
+                      autoComplete="username"
+                      placeholder="Masukkan email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       style={{
-                        position: "relative",
+                        height: "58px",
+                        background: "#F6F8FC",
+                        border: "1px solid #E5E7EB",
+                        borderRadius: "14px",
+                        paddingLeft: "18px",
+                        paddingRight: "42px",
+                        fontSize: "15px",
+                        boxShadow: "none",
                       }}
-                    >
-                      <Form.Control
-                        type="text"
-                        autoComplete="username"
-                        placeholder="Email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        style={{
-                          height: "58px",
-                          background: "#F6F8FC",
-                          border: "1px solid #E5E7EB",
-                          borderRadius: "14px",
-                          paddingLeft: "18px",
-                          paddingRight: "42px",
-                          fontSize: "15px",
-                          boxShadow: "none",
+                    />
+
+                    {email.trim() !== "" && (
+                      <FaTimes
+                        onClick={() => {
+                          setEmail("");
                         }}
-                      />
-
-                      {email.trim() !== "" && (
-                        <FaTimes
-                          onClick={() => {
-                            setEmail("");
-                          }}
-                          style={{
-                            position: "absolute",
-                            right: "16px",
-                            top: "50%",
-                            transform: "translateY(-50%)",
-                            cursor: "pointer",
-                            fontSize: "14px",
-                            color: "#A7AFBD",
-                            zIndex: 2,
-                          }}
-                        />
-                      )}
-                    </div>
-
-                    {emailError && (
-                      <div
-                        style={{
-                          color: "#E53935",
-                          fontSize: "12px",
-                          marginTop: "6px",
-                        }}
-                      >
-                        {emailError}
-                      </div>
-                    )}
-                  </Form.Group>
-                </div>
-
-                <div className="position-relative mb-3">
-                  <Form.Group className="mb-4">
-                    <div
-                      style={{
-                        position: "relative",
-                      }}
-                    >
-                      <Form.Control
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Kata Sandi"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        style={{
-                          height: "58px",
-                          border: "1px solid #E4E7EC",
-                          background: "#FFFFFF",
-                          borderRadius: "14px",
-                          paddingLeft: "18px",
-                          paddingRight: "45px",
-                          fontSize: "15px",
-                        }}
-                      />
-
-                      <div
-                        onClick={() =>
-                          setShowPassword(!showPassword)
-                        }
                         style={{
                           position: "absolute",
                           right: "16px",
-                          top: "29px",
+                          top: "50%",
                           transform: "translateY(-50%)",
                           cursor: "pointer",
-                          color: "#666",
-                          fontSize: "15px",
+                          fontSize: "14px",
+                          color: "#A7AFBD",
+                          zIndex: 2,
                         }}
-                      >
-                        {showPassword ? <FaEye /> : <FaEyeSlash />}
-                      </div>
-                    </div>
-
-                    {passwordError && (
-                      <div
-                        style={{
-                          color: "#E53935",
-                          fontSize: "12px",
-                          marginTop: "6px",
-                        }}
-                      >
-                        {passwordError}
-                      </div>
+                      />
                     )}
-                  </Form.Group>
-                </div>
+                  </div>
+
+                  {emailError && (
+                    <div
+                      style={{
+                        color: "#E53935",
+                        fontSize: "12px",
+                        marginTop: "6px",
+                      }}
+                    >
+                      {emailError}
+                    </div>
+                  )}
+                </Form.Group>
+
+                {/* PASSWORD */}
+                <Form.Group className="mb-4">
+                  <Form.Label
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      color: "#31353F",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    Kata Sandi
+                  </Form.Label>
+
+                  <div
+                    style={{
+                      position: "relative",
+                    }}
+                  >
+                    <Form.Control
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Masukkan kata sandi"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      autoComplete="current-password"
+                      style={{
+                        height: "58px",
+                        border: "1px solid #E4E7EC",
+                        background: "#FFFFFF",
+                        borderRadius: "14px",
+                        paddingLeft: "18px",
+                        paddingRight: "45px",
+                        fontSize: "15px",
+                      }}
+                    />
+
+                    <div
+                      onClick={() =>
+                        setShowPassword(!showPassword)
+                      }
+                      style={{
+                        position: "absolute",
+                        right: "16px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        cursor: "pointer",
+                        color: "#666",
+                        fontSize: "15px",
+                      }}
+                    >
+                      {showPassword ? <FaEye /> : <FaEyeSlash />}
+                    </div>
+                  </div>
+
+                  {passwordError && (
+                    <div
+                      style={{
+                        color: "#E53935",
+                        fontSize: "12px",
+                        marginTop: "6px",
+                      }}
+                    >
+                      {passwordError}
+                    </div>
+                  )}
+                </Form.Group>
 
                 <div className="text-end mb-3">
                   <p

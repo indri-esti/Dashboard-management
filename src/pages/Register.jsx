@@ -165,10 +165,21 @@ function Register() {
               <Form onSubmit={handleRegister}>
                 {/* NAMA */}
                 <Form.Group className="mb-4">
+                  <Form.Label
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      color: "#31353F",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    Nama
+                  </Form.Label>
+
                   <div style={{ position: "relative" }}>
                     <Form.Control
                       type="text"
-                      placeholder="Nama"
+                      placeholder="Masukkan nama lengkap"
                       value={nama}
                       onChange={(e) => setNama(e.target.value)}
                       autoComplete="name"
@@ -215,10 +226,21 @@ function Register() {
 
                 {/* EMAIL */}
                 <Form.Group className="mb-4">
+                  <Form.Label
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      color: "#31353F",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    Email
+                  </Form.Label>
+
                   <div style={{ position: "relative" }}>
                     <Form.Control
                       type="email"
-                      placeholder="Email"
+                      placeholder="Masukkan alamat email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       autoComplete="email"
@@ -265,10 +287,21 @@ function Register() {
 
                 {/* PASSWORD */}
                 <Form.Group className="mb-4">
+                  <Form.Label
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      color: "#31353F",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    Kata Sandi
+                  </Form.Label>
+
                   <div style={{ position: "relative" }}>
                     <Form.Control
                       type={showPassword ? "text" : "password"}
-                      placeholder="Kata Sandi"
+                      placeholder="Masukkan kata sandi"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       autoComplete="new-password"
@@ -315,6 +348,17 @@ function Register() {
 
                 {/* CONFIRM PASSWORD */}
                 <Form.Group className="mb-4">
+                  <Form.Label
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      color: "#31353F",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    Konfirmasi Kata Sandi
+                  </Form.Label>
+
                   <div style={{ position: "relative" }}>
                     <Form.Control
                       type={
@@ -322,7 +366,7 @@ function Register() {
                           ? "text"
                           : "password"
                       }
-                      placeholder="Konfirmasi Kata Sandi"
+                      placeholder="Masukkan ulang kata sandi"
                       value={confirmPassword}
                       onChange={(e) =>
                         setConfirmPassword(e.target.value)
