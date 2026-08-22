@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Container,
@@ -16,8 +16,6 @@ import {
   Badge,
 } from "react-bootstrap";
 import {
-  FaBook,
-  FaChalkboardTeacher,
   FaCalendarAlt,
   FaSearch,
   FaPlus,
@@ -26,67 +24,71 @@ import {
   FaTrash,
   FaArrowCircleUp,
   FaTimes,
-  FaInfoCircle,
 } from "react-icons/fa";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 
 // ===========================
-// HARDCODE DUMMY DATA (nanti diganti fetch API kayak UserManagement.jsx)
+// HARDCODE DUMMY DATA (nanti diganti fetch API kelas.py kayak UserManagement.jsx)
+// Kelas sekarang berisi data ANGGOTA/PESERTA kelas, bukan lagi nama mata kelas.
 // ===========================
 const DUMMY_KELAS = [
   {
     id_kelas: 1,
-    nama_kelas: "React Fundamental",
+    nama: "Budi Santoso",
+    phone: "081234567891",
+    email: "budi.santoso@mail.com",
     roles: "Member",
-    deskripsi:
-      "Belajar dasar React mulai dari komponen, state, hingga routing.",
     status: "active",
     created_at: "2026-06-10",
     alasan_non_active: "",
   },
   {
     id_kelas: 2,
-    nama_kelas: "Python untuk Data Analyst",
+    nama: "Siti Aminah",
+    phone: "081298765432",
+    email: "siti.aminah@mail.com",
     roles: "Member",
-    deskripsi:
-      "Analisis data menggunakan Python, Pandas, dan visualisasi data.",
     status: "active",
     created_at: "2026-07-02",
     alasan_non_active: "",
   },
   {
     id_kelas: 3,
-    nama_kelas: "UI/UX Design Dasar",
+    nama: "Ahmad Fauzi",
+    phone: "085611122233",
+    email: "ahmad.fauzi@mail.com",
     roles: "Admin",
-    deskripsi: "Prinsip dasar UI/UX, wireframing, dan prototyping.",
     status: "non active",
     created_at: "2026-03-15",
-    alasan_non_active: "Materi sedang diperbarui ke versi terbaru.",
+    alasan_non_active: "Sedang cuti panjang, akses dinonaktifkan sementara.",
   },
   {
     id_kelas: 4,
-    nama_kelas: "Falcon Framework untuk Backend",
+    nama: "Dewi Lestari",
+    phone: "081345567788",
+    email: "dewi.lestari@mail.com",
     roles: "Admin",
-    deskripsi: "Membangun REST API dengan Python Falcon dan MySQL.",
     status: "active",
     created_at: "2026-08-01",
     alasan_non_active: "",
   },
   {
     id_kelas: 5,
-    nama_kelas: "Digital Marketing untuk Pemula",
+    nama: "Rio Pratama",
+    phone: "082211334455",
+    email: "rio.pratama@mail.com",
     roles: "Member",
-    deskripsi: "Dasar-dasar digital marketing, SEO, dan social media ads.",
     status: "non active",
     created_at: "2026-01-20",
-    alasan_non_active: "Instruktur cuti, kelas dijadwalkan ulang.",
+    alasan_non_active: "Mengundurkan diri dari kelas, menunggu konfirmasi ulang.",
   },
   {
     id_kelas: 6,
-    nama_kelas: "Mobile App dengan React Native",
+    nama: "Maya Kusuma",
+    phone: "081777889900",
+    email: "maya.kusuma@mail.com",
     roles: "Member",
-    deskripsi: "Membangun aplikasi mobile cross-platform dengan React Native.",
     status: "active",
     created_at: "2026-05-28",
     alasan_non_active: "",
@@ -95,6 +97,26 @@ const DUMMY_KELAS = [
 
 const isActiveStatus = (status) =>
   (status || "").toLowerCase().trim() === "active";
+
+const formatPhoneNumber = (phone) => {
+  if (!phone) return "-";
+
+  let number = String(phone).replace(/\D/g, "");
+
+  if (number.startsWith("62")) {
+    number = number.slice(2);
+  }
+
+  if (number.startsWith("0")) {
+    number = number.slice(1);
+  }
+
+  if (number.length >= 10) {
+    return `(+62) ${number.replace(/(\d{3})(\d{4})(\d+)/, "$1-$2-$3")}`;
+  }
+
+  return `(+62) ${number}`;
+};
 
 function Kelas() {
   const navigate = useNavigate();
@@ -117,7 +139,7 @@ function Kelas() {
     }, 400);
 
     // ===========================
-    // NANTI KALAU BACKEND SUDAH SIAP, GANTI JADI:
+    // NANTI KALAU BACKEND kelas.py SUDAH SIAP, GANTI JADI:
     // ===========================
     // try {
     //   setLoading(true);
@@ -157,12 +179,8 @@ function Kelas() {
       year: "numeric",
     });
 
-  const today = useMemo(() => new Date(), []);
-
-  const defaultStart = useMemo(
-    () => new Date(today.getFullYear(), 0, 1),
-    [today]
-  );
+  const today = new Date();
+  const defaultStart = new Date(today.getFullYear(), 0, 1);
 
   const [startDate, setStartDate] = useState(defaultStart);
   const [endDate, setEndDate] = useState(today);
@@ -199,6 +217,56 @@ function Kelas() {
   const [selectedKelas, setSelectedKelas] = useState(null);
 
   // ===========================
+  // Edit modal
+  // ===========================
+  const [showEdit, setShowEdit] = useState(false);
+  const [selectedEdit, setSelectedEdit] = useState(null);
+  const [editForm, setEditForm] = useState({
+    nama: "",
+    phone: "",
+    email: "",
+    roles: "Member",
+  });
+  const [saving, setSaving] = useState(false);
+
+  const openEditModal = (item) => {
+    setSelectedEdit(item);
+    setEditForm({
+      nama: item.nama || "",
+      phone: item.phone || "",
+      email: item.email || "",
+      roles: item.roles || "Member",
+    });
+    setShowEdit(true);
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveEdit = () => {
+    if (!selectedEdit) return;
+
+    setSaving(true);
+
+    // Simulasi update data lokal (nanti diganti api.put(`/api/kelas/${id}`, editForm))
+    setTimeout(() => {
+      setDataKelas((prev) =>
+        prev.map((item) =>
+          item.id_kelas === selectedEdit.id_kelas
+            ? { ...item, ...editForm }
+            : item
+        )
+      );
+
+      setShowEdit(false);
+      setSelectedEdit(null);
+      setSaving(false);
+    }, 300);
+  };
+
+  // ===========================
   // Delete modal (HAPUS PERMANEN)
   // ===========================
   const [showDelete, setShowDelete] = useState(false);
@@ -213,9 +281,7 @@ function Kelas() {
     // Simulasi hapus data lokal (nanti diganti api.delete(`/api/kelas/${id}`))
     setTimeout(() => {
       setDataKelas((prev) =>
-        prev.filter(
-          (item) => item.id_kelas !== selectedDelete.id_kelas
-        )
+        prev.filter((item) => item.id_kelas !== selectedDelete.id_kelas)
       );
 
       setShowDelete(false);
@@ -266,7 +332,9 @@ function Kelas() {
       const keyword = search.toLowerCase();
 
       return (
-        (item.nama_kelas || "").toLowerCase().includes(keyword) ||
+        (item.nama || "").toLowerCase().includes(keyword) ||
+        (item.email || "").toLowerCase().includes(keyword) ||
+        (item.phone || "").toLowerCase().includes(keyword) ||
         (item.roles || "").toLowerCase().includes(keyword)
       );
     })
@@ -320,31 +388,7 @@ function Kelas() {
   const indexOfLastKelas = currentPage * itemsPerPage;
   const indexOfFirstKelas = indexOfLastKelas - itemsPerPage;
 
-  const currentKelas = filteredKelas.slice(
-    indexOfFirstKelas,
-    indexOfLastKelas
-  );
-
-  // ===========================
-  // Stats
-  // ===========================
-  const ninetyDaysAgo = useMemo(() => {
-    const d = new Date(today);
-    d.setDate(today.getDate() - 90);
-    return d;
-  }, [today]);
-
-  const newKelas = dataKelas.filter((item) => {
-    const created = new Date(item.created_at);
-
-    return (
-      !isNaN(created.getTime()) &&
-      created >= ninetyDaysAgo &&
-      created <= today
-    );
-  });
-
-  const totalKelas = dataKelas.length;
+  const currentKelas = filteredKelas.slice(indexOfFirstKelas, indexOfLastKelas);
 
   return (
     <Container fluid className="py-3 kelas-page">
@@ -370,7 +414,7 @@ function Kelas() {
         }
 
         .kelas-page table {
-          min-width: 700px;
+          min-width: 800px;
         }
 
         .kelas-page table th {
@@ -448,11 +492,9 @@ function Kelas() {
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 style={{ fontWeight: 700, color: "#1E293B" }}>
-            Kelas
-          </h2>
+          <h2 style={{ fontWeight: 700, color: "#1E293B" }}>Kelas</h2>
           <p style={{ color: "#64748B", marginBottom: 0 }}>
-            Kelola data master kelas/kursus LMS.
+            Kelola data anggota/peserta kelas LMS.
           </p>
         </div>
       </div>
@@ -462,152 +504,6 @@ function Kelas() {
           {error}
         </Alert>
       )}
-
-      {/* Statistik */}
-      <Row className="g-4 mb-4">
-        <Col md={6}>
-          <Card
-            style={{
-              border: "1px solid #CFE6FF",
-              borderRadius: "16px",
-              background: "#EAF5FF",
-              minHeight: "120px",
-              boxShadow: "0 10px 30px rgba(15,23,42,.08)",
-            }}
-          >
-            <Card.Body className="px-4 py-3">
-              <div className="d-flex justify-content-between align-items-center">
-                <div>
-                  <div
-                    className="d-flex align-items-center gap-2"
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 700,
-                      letterSpacing: 1,
-                      color: "#64748B",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Total Kelas
-                    <FaInfoCircle size={12} color="#9CA3AF" />
-                  </div>
-
-                  <h2
-                    style={{
-                      fontSize: 46,
-                      fontWeight: 800,
-                      color: "#0F172A",
-                      margin: "6px 0",
-                      lineHeight: 1,
-                    }}
-                  >
-                    {loading ? (
-                      <Spinner animation="border" size="sm" />
-                    ) : (
-                      totalKelas
-                    )}
-                  </h2>
-                </div>
-
-                <div
-                  style={{
-                    width: 68,
-                    height: 68,
-                    borderRadius: 20,
-                    background: "#2563EB",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    boxShadow: "0 10px 25px rgba(37,99,235,.25)",
-                    border: "4px solid rgba(255,255,255,.55)",
-                  }}
-                >
-                  <FaBook size={28} color="#fff" />
-                </div>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col md={6}>
-          <Card
-            style={{
-              border: "1px solid #F8E8B5",
-              borderRadius: "16px",
-              background: "#FFF5DA",
-              minHeight: "120px",
-              boxShadow: "0 8px 24px rgba(245, 158, 11, 0.12)",
-            }}
-          >
-            <Card.Body className="px-4 py-3">
-              <div className="d-flex justify-content-between align-items-center">
-                <div>
-                  <div
-                    className="d-flex align-items-center gap-2"
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 700,
-                      letterSpacing: 1,
-                      color: "#64748B",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Kelas Baru
-                    <FaInfoCircle size={12} color="#9CA3AF" />
-                  </div>
-
-                  <h2
-                    style={{
-                      fontSize: 37,
-                      fontWeight: 800,
-                      color: "#0F172A",
-                      margin: "6px 0",
-                      lineHeight: 1,
-                    }}
-                  >
-                    {loading ? (
-                      <Spinner animation="border" size="sm" />
-                    ) : (
-                      newKelas.length
-                    )}
-                  </h2>
-
-                  <small style={{ color: "#6B7280", fontSize: "12px" }}>
-                    90 hari terakhir (
-                    {ninetyDaysAgo.toLocaleDateString("id-ID", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                    {" - "}
-                    {today.toLocaleDateString("id-ID", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                    )
-                  </small>
-                </div>
-
-                <div
-                  style={{
-                    width: 64,
-                    height: 64,
-                    borderRadius: 18,
-                    background: "linear-gradient(135deg, #FBBF24, #F59E0B)",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    boxShadow: "0 10px 25px rgba(245, 158, 11, .25)",
-                  }}
-                >
-                  <FaChalkboardTeacher size={28} color="#fff" />
-                </div>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
 
       {/* Card tabel */}
       <Card
@@ -635,8 +531,7 @@ function Kelas() {
                 cursor: "pointer",
                 fontWeight: 600,
                 paddingBottom: 10,
-                borderBottom:
-                  tab === "active" ? "3px solid #2538C8" : "none",
+                borderBottom: tab === "active" ? "3px solid #2538C8" : "none",
                 color: tab === "active" ? "#2538C8" : "#64748B",
                 marginBottom: 0,
               }}
@@ -684,7 +579,7 @@ function Kelas() {
 
                 <Form.Control
                   type="text"
-                  placeholder="Cari kelas..."
+                  placeholder="Cari anggota kelas..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   style={{
@@ -748,7 +643,7 @@ function Kelas() {
                 }}
               >
                 <FaPlus className="me-2" />
-                Buat Kelas Baru
+                Tambah Anggota Kelas
               </Button>
             </Col>
           </Row>
@@ -772,12 +667,12 @@ function Kelas() {
                 <thead style={{ background: "#F8FAFC" }}>
                   <tr>
                     <th style={thStyle}>NO.</th>
-                    <th style={thStyle}>NAMA KELAS</th>
+                    <th style={thStyle}>NAMA</th>
+                    <th style={thStyle}>NO. HANDPHONE</th>
+                    <th style={thStyle}>EMAIL</th>
                     <th style={thStyle}>ROLES</th>
 
-                    {tab === "nonactive" && (
-                      <th style={thStyle}>ALASAN</th>
-                    )}
+                    {tab === "nonactive" && <th style={thStyle}>ALASAN</th>}
 
                     <th></th>
                   </tr>
@@ -798,8 +693,20 @@ function Kelas() {
                             color: "#1e293b",
                           }}
                         >
-                          {item.nama_kelas}
+                          {item.nama}
                         </td>
+
+                        <td
+                          style={{
+                            ...tdStyle,
+                            fontWeight: 500,
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {formatPhoneNumber(item.phone)}
+                        </td>
+
+                        <td style={tdStyle}>{item.email || "-"}</td>
 
                         <td style={tdStyle}>
                           <Badge
@@ -872,11 +779,7 @@ function Kelas() {
                             )}
 
                             <span
-                              onClick={() =>
-                                navigate(
-                                  `/master-data/kelas/edit/${item.id_kelas}`
-                                )
-                              }
+                              onClick={() => openEditModal(item)}
                               title="Edit"
                             >
                               <FaEdit
@@ -912,7 +815,7 @@ function Kelas() {
                   ) : (
                     <tr>
                       <td
-                        colSpan={tab === "nonactive" ? 6 : 5}
+                        colSpan={tab === "nonactive" ? 7 : 6}
                         style={{
                           padding: "60px 20px",
                           textAlign: "center",
@@ -934,13 +837,13 @@ function Kelas() {
                         >
                           {isSearching
                             ? `Tidak ada hasil untuk "${search}"`
-                            : "Belum ada data kelas"}
+                            : "Belum ada data anggota kelas"}
                         </h5>
 
                         <p style={{ color: "#94A3B8", marginBottom: 20 }}>
                           {isSearching
                             ? "Coba gunakan kata kunci lain."
-                            : "Data kelas akan ditampilkan di sini."}
+                            : "Data anggota kelas akan ditampilkan di sini."}
                         </p>
 
                         {isSearching && (
@@ -989,9 +892,7 @@ function Kelas() {
 
                     <Pagination.Next
                       onClick={() =>
-                        setCurrentPage((prev) =>
-                          Math.min(prev + 1, totalPages)
-                        )
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                       }
                       disabled={currentPage === totalPages}
                     />
@@ -1013,27 +914,34 @@ function Kelas() {
           style={{ padding: "36px", borderRadius: 18, position: "relative" }}
         >
           <h4 style={{ fontWeight: 700, textAlign: "center", marginBottom: 30 }}>
-            Detail Data Kelas
+            Detail Anggota Kelas
           </h4>
 
           <Row className="mb-3">
-            <Col xs={5}>Nama Kelas</Col>
+            <Col xs={5}>Nama</Col>
             <Col xs={7} className="text-end">
-              {selectedKelas?.nama_kelas || "-"}
+              {selectedKelas?.nama || "-"}
             </Col>
           </Row>
 
           <Row className="mb-3">
-            <Col xs={5}>Roles</Col>
+            <Col xs={5}>No. Handphone</Col>
             <Col xs={7} className="text-end">
-              {selectedKelas?.roles || "-"}
+              {formatPhoneNumber(selectedKelas?.phone)}
+            </Col>
+          </Row>
+
+          <Row className="mb-3">
+            <Col xs={5}>Email</Col>
+            <Col xs={7} className="text-end">
+              {selectedKelas?.email || "-"}
             </Col>
           </Row>
 
           <Row>
-            <Col xs={5}>Deskripsi</Col>
+            <Col xs={5}>Roles</Col>
             <Col xs={7} className="text-end">
-              {selectedKelas?.deskripsi || "-"}
+              {selectedKelas?.roles || "-"}
             </Col>
           </Row>
 
@@ -1058,7 +966,114 @@ function Kelas() {
         </Modal.Body>
       </Modal>
 
-      {/* Modal Hapus Kelas (permanen) */}
+      {/* Modal Edit */}
+      <Modal
+        show={showEdit}
+        onHide={() => !saving && setShowEdit(false)}
+        centered
+      >
+        <Modal.Body
+          style={{ padding: "36px", borderRadius: 18, position: "relative" }}
+        >
+          <h4 style={{ fontWeight: 700, textAlign: "center", marginBottom: 30 }}>
+            Edit Anggota Kelas
+          </h4>
+
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label style={{ fontWeight: 600 }}>Nama</Form.Label>
+              <Form.Control
+                name="nama"
+                value={editForm.nama}
+                onChange={handleEditChange}
+                placeholder="Masukkan nama"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label style={{ fontWeight: 600 }}>No. Handphone</Form.Label>
+              <Form.Control
+                name="phone"
+                value={editForm.phone}
+                onChange={handleEditChange}
+                placeholder="Contoh: 081234567890"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label style={{ fontWeight: 600 }}>Email</Form.Label>
+              <Form.Control
+                type="email"
+                name="email"
+                value={editForm.email}
+                onChange={handleEditChange}
+                placeholder="Masukkan email"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-2">
+              <Form.Label style={{ fontWeight: 600 }}>Roles</Form.Label>
+              <Form.Select
+                name="roles"
+                value={editForm.roles}
+                onChange={handleEditChange}
+              >
+                <option value="Member">Member</option>
+                <option value="Admin">Admin</option>
+              </Form.Select>
+            </Form.Group>
+          </Form>
+
+          <div className="d-flex justify-content-between mt-4">
+            <Button
+              style={{
+                width: "48%",
+                height: 46,
+                background: "#2538C8",
+                border: "none",
+                borderRadius: 10,
+              }}
+              disabled={saving}
+              onClick={handleSaveEdit}
+            >
+              {saving ? <Spinner animation="border" size="sm" /> : "SIMPAN"}
+            </Button>
+
+            <Button
+              variant="outline-secondary"
+              style={{ width: "48%", height: 46, borderRadius: 10 }}
+              disabled={saving}
+              onClick={() => {
+                setShowEdit(false);
+                setSelectedEdit(null);
+              }}
+            >
+              BATAL
+            </Button>
+          </div>
+
+          <div
+            style={{
+              position: "absolute",
+              top: 18,
+              right: 18,
+              width: 34,
+              height: 34,
+              borderRadius: "50%",
+              background: "#F1F5F9",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              cursor: "pointer",
+            }}
+            onClick={() => !saving && setShowEdit(false)}
+          >
+            <FaTimes size={14} color="#64748B" />
+          </div>
+        </Modal.Body>
+      </Modal>
+
+      {/* Modal Hapus Anggota Kelas (permanen) */}
       <Modal
         show={showDelete}
         onHide={() => !deleting && setShowDelete(false)}
@@ -1075,9 +1090,9 @@ function Kelas() {
               color: "#64748B",
             }}
           >
-            Apakah kamu yakin ingin menghapus kelas{" "}
-            <strong>{selectedDelete?.nama_kelas}</strong>? Data yang sudah
-            dihapus tidak dapat dikembalikan.
+            Apakah kamu yakin ingin menghapus data{" "}
+            <strong>{selectedDelete?.nama}</strong>? Data yang sudah dihapus
+            tidak dapat dikembalikan.
           </p>
 
           <div className="d-flex justify-content-between mt-4">
@@ -1092,11 +1107,7 @@ function Kelas() {
               disabled={deleting}
               onClick={handleDeleteKelas}
             >
-              {deleting ? (
-                <Spinner animation="border" size="sm" />
-              ) : (
-                "YA, HAPUS"
-              )}
+              {deleting ? <Spinner animation="border" size="sm" /> : "YA, HAPUS"}
             </Button>
 
             <Button
@@ -1254,8 +1265,8 @@ function Kelas() {
               marginBottom: 35,
             }}
           >
-            Apakah kamu yakin ingin mengaktifkan kembali kelas{" "}
-            <strong>{selectedReActive?.nama_kelas}</strong>?
+            Apakah kamu yakin ingin mengaktifkan kembali{" "}
+            <strong>{selectedReActive?.nama}</strong>?
           </p>
 
           <div className="d-flex gap-3">
