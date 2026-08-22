@@ -22,6 +22,7 @@ import {
   MdOutlinePeople,
   MdPersonOutline,
   MdChevronRight,
+  MdOutlineAdminPanelSettings,
 } from "react-icons/md";
 
 import logo from "../assets/logo.png";
@@ -609,6 +610,20 @@ function Sidebar() {
                     size={18}
                   />
                   <span>Blog</span>
+                </Nav.Link>
+
+                <Nav.Link
+                  as={Link}
+                  to="/master-data/roles"
+                  style={submenuStyle(
+                    location.pathname ===
+                      "/master-data/roles"
+                  )}
+                >
+                  <MdOutlineAdminPanelSettings
+                    size={18}
+                  />
+                  <span>Roles</span>
                 </Nav.Link>
               </div>
             )}

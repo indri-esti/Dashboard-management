@@ -8,6 +8,7 @@ import EditUser from "./pages/EditUser";
 import Profile from "./pages/Profile";
 import Register from "./pages/Register";
 import Kelas from "./pages/MasterData/Kelas";
+import Roles from "./pages/MasterData/Roles";
 
 function App() {
   return (
@@ -32,6 +33,12 @@ function App() {
         <Route
           path="/master-data/kelas"
           element={<Kelas />}
+        />
+
+        {/*Master Data - Roles*/}
+        <Route
+          path="/master-data/roles"
+          element={<Roles />}
         />
       </Route>
 
