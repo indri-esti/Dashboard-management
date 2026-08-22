@@ -279,6 +279,7 @@ function Kelas() {
     phone: "",
     email: "",
     roles: "Member",
+    alasan_non_active: "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -289,6 +290,7 @@ function Kelas() {
       phone: item.phone || "",
       email: item.email || "",
       roles: item.roles || "Member",
+      alasan_non_active: item.alasan_non_active || "",
     });
     setShowEdit(true);
   };
@@ -303,12 +305,18 @@ function Kelas() {
 
     setSaving(true);
 
+    const alasanTerisi = editForm.alasan_non_active.trim() !== "";
+
     // Simulasi update data lokal (nanti diganti api.put(`/api/kelas/${id}`, editForm))
     setTimeout(() => {
       setDataKelas((prev) =>
         prev.map((item) =>
           item.id_kelas === selectedEdit.id_kelas
-            ? { ...item, ...editForm }
+            ? {
+                ...item,
+                ...editForm,
+                status: alasanTerisi ? "non active" : "active",
+              }
             : item
         )
       );
@@ -1168,7 +1176,7 @@ function Kelas() {
               />
             </Form.Group>
 
-            <Form.Group className="mb-2">
+            <Form.Group className="mb-3">
               <Form.Label style={{ fontWeight: 600 }}>Roles</Form.Label>
               <Form.Select
                 name="roles"
@@ -1178,6 +1186,24 @@ function Kelas() {
                 <option value="Member">Member</option>
                 <option value="Admin">Admin</option>
               </Form.Select>
+            </Form.Group>
+
+            <Form.Group className="mb-2">
+              <Form.Label style={{ fontWeight: 600 }}>
+                Alasan Non Active
+              </Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                name="alasan_non_active"
+                value={editForm.alasan_non_active}
+                onChange={handleEditChange}
+                placeholder="Kosongkan jika tetap active..."
+              />
+              <Form.Text style={{ color: "#94A3B8" }}>
+                Kalau alasan diisi, status otomatis jadi Non Active. Kalau
+                dikosongkan, status otomatis jadi Active.
+              </Form.Text>
             </Form.Group>
           </Form>
 
