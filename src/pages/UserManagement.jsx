@@ -94,14 +94,22 @@ function UserManagement() {
   const loadRoles = async () => {
     try {
       setRolesLoading(true);
+
       const response = await api.get("/api/roles");
-      setRoles(
-        response.data?.status === "success"
-          ? response.data.data || []
-          : []
-      );
+      const body = response?.data;
+
+      const list = Array.isArray(body)
+        ? body
+        : Array.isArray(body?.data)
+        ? body.data
+        : Array.isArray(body?.roles)
+        ? body.roles
+        : [];
+
+      setRoles(list);
     } catch (err) {
       console.error("Gagal mengambil role:", err);
+      console.error("Detail error role:", err.response?.data || err.message);
       setRoles([]);
     } finally {
       setRolesLoading(false);
@@ -156,6 +164,16 @@ function UserManagement() {
   useEffect(() => {
     loadRoles();
     loadUsers();
+
+    const refreshRoles = () => {
+      loadRoles();
+    };
+
+    window.addEventListener("focus", refreshRoles);
+
+    return () => {
+      window.removeEventListener("focus", refreshRoles);
+    };
   }, []);
 
   useEffect(() => {

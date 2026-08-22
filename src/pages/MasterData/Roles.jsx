@@ -155,36 +155,33 @@ function Roles() {
     setAddForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSaveAdd = () => {
+  const handleSaveAdd = async () => {
     if (!addForm.nama_role.trim()) return;
 
-    setAdding(true);
+    try {
+      setAdding(true);
 
-    // Simulasi tambah data lokal (nanti diganti api.post("/api/roles", addForm))
-    setTimeout(() => {
-      setDataRoles((prev) => {
-        const nextId =
-          prev.length > 0
-            ? Math.max(...prev.map((item) => Number(item.id_role) || 0)) + 1
-            : 1;
-
-        return [
-          ...prev,
-          {
-            id_role: nextId,
-            nama_role: addForm.nama_role,
-            deskripsi: addForm.deskripsi,
-            status: "active",
-            created_at: new Date().toISOString().slice(0, 10),
-            alasan_non_active: "",
-          },
-        ];
+      await api.post("/api/roles", {
+        nama_role: addForm.nama_role.trim(),
+        deskripsi: addForm.deskripsi.trim(),
       });
 
       setShowAdd(false);
-      setAdding(false);
+      setAddForm({ nama_role: "", deskripsi: "" });
       setTab("active");
-    }, 300);
+
+      // Ambil ulang dari database supaya Role yang baru langsung
+      // tersedia juga di dropdown Kelas dan User.
+      await loadRoles();
+    } catch (err) {
+      console.error("Gagal menambah role:", err);
+      alert(
+        err.response?.data?.message ||
+          "Gagal menambahkan role ke server."
+      );
+    } finally {
+      setAdding(false);
+    }
   };
 
   // ===========================

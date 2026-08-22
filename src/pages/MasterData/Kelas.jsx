@@ -64,19 +64,27 @@ function Kelas() {
   const [roles, setRoles] = useState([]);
   const [rolesLoading, setRolesLoading] = useState(true);
 
+  const extractList = (response, key) => {
+    const body = response?.data;
+
+    if (Array.isArray(body)) return body;
+    if (Array.isArray(body?.data)) return body.data;
+    if (Array.isArray(body?.[key])) return body[key];
+
+    return [];
+  };
+
   const loadRoles = async () => {
     try {
       setRolesLoading(true);
 
       const response = await api.get("/api/roles");
+      const list = extractList(response, "roles");
 
-      if (response.data?.status === "success") {
-        setRoles(response.data.data || []);
-      } else {
-        setRoles([]);
-      }
+      setRoles(list);
     } catch (err) {
       console.error("Gagal mengambil role untuk kelas:", err);
+      console.error("Detail error role:", err.response?.data || err.message);
       setRoles([]);
     } finally {
       setRolesLoading(false);
@@ -89,20 +97,26 @@ function Kelas() {
       setError("");
 
       const response = await api.get("/api/kelas");
+      const list = extractList(response, "kelas");
 
-      if (response.data?.status === "success") {
-        setDataKelas(response.data.data || []);
-      } else {
-        setDataKelas([]);
-        setError(
-          response.data?.message || "Gagal mengambil data kelas."
+      if (
+        response.data?.status === "error" &&
+        !Array.isArray(response.data?.data)
+      ) {
+        throw new Error(
+          response.data?.message || "Backend mengembalikan error saat mengambil data kelas."
         );
       }
+
+      setDataKelas(list);
     } catch (err) {
       console.error("Gagal mengambil data kelas:", err);
+      console.error("Detail error kelas:", err.response?.data || err.message);
+
       setDataKelas([]);
       setError(
         err.response?.data?.message ||
+          err.message ||
           "Gagal mengambil data kelas dari server."
       );
     } finally {
@@ -113,6 +127,17 @@ function Kelas() {
   useEffect(() => {
     loadKelas();
     loadRoles();
+
+    const refreshData = () => {
+      loadKelas();
+      loadRoles();
+    };
+
+    window.addEventListener("focus", refreshData);
+
+    return () => {
+      window.removeEventListener("focus", refreshData);
+    };
   }, []);
 
   // ===========================

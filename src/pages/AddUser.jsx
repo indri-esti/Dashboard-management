@@ -97,35 +97,65 @@ function AddUser() {
   const [kelasLoading, setKelasLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
+    const getList = (res, key) => {
+      const body = res?.data;
+      if (Array.isArray(body)) return body;
+      if (Array.isArray(body?.data)) return body.data;
+      if (Array.isArray(body?.[key])) return body[key];
+      return [];
+    };
+
     const fetchRoles = async () => {
       try {
+        setRolesLoading(true);
         const res = await api.get("/api/roles");
-        setRoles(res.data?.data || []);
+        if (!cancelled) {
+          setRoles(getList(res, "roles"));
+        }
       } catch (err) {
         console.error("Gagal mengambil data role:", err);
+        if (!cancelled) setRoles([]);
       } finally {
-        setRolesLoading(false);
+        if (!cancelled) setRolesLoading(false);
       }
     };
 
     const fetchKelas = async () => {
       try {
+        setKelasLoading(true);
         const res = await api.get("/api/kelas");
-        const list = (res.data?.data || []).filter(
+
+        const list = getList(res, "kelas").filter(
           (item) =>
-            (item.status || "active").toLowerCase().trim() === "active"
+            String(item.status ?? "active").toLowerCase().trim() === "active"
         );
-        setKelasList(list);
+
+        if (!cancelled) setKelasList(list);
       } catch (err) {
         console.error("Gagal mengambil data kelas:", err);
-        setKelasList([]);
+        console.error("Detail error kelas:", err.response?.data || err.message);
+        if (!cancelled) setKelasList([]);
       } finally {
-        setKelasLoading(false);
+        if (!cancelled) setKelasLoading(false);
       }
     };
 
     fetchRoles();
     fetchKelas();
+
+    const refreshDropdownData = () => {
+      fetchRoles();
+      fetchKelas();
+    };
+
+    window.addEventListener("focus", refreshDropdownData);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", refreshDropdownData);
+    };
   }, []);
 
   const handleKelasChange = (e) => {
