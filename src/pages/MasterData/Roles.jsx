@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import api from "../api";
 import {
   Container,
   Row,
@@ -27,52 +28,6 @@ import {
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 
-// ===========================
-// HARDCODE DUMMY DATA (nanti diganti fetch API roles.py kayak UserManagement.jsx)
-// ===========================
-const DUMMY_ROLES = [
-  {
-    id_role: 1,
-    nama_role: "Admin",
-    deskripsi: "Akses penuh ke seluruh fitur dashboard.",
-    status: "active",
-    created_at: "2026-06-10",
-    alasan_non_active: "",
-  },
-  {
-    id_role: 2,
-    nama_role: "Member",
-    deskripsi: "Akses standar untuk peserta/anggota kelas.",
-    status: "active",
-    created_at: "2026-07-02",
-    alasan_non_active: "",
-  },
-  {
-    id_role: 3,
-    nama_role: "Instruktur",
-    deskripsi: "Mengelola materi, presensi, dan nilai peserta.",
-    status: "non active",
-    created_at: "2026-03-15",
-    alasan_non_active: "Role belum dipakai, masih tahap perencanaan.",
-  },
-  {
-    id_role: 4,
-    nama_role: "Finance",
-    deskripsi: "Mengelola data transaksi dan voucher.",
-    status: "active",
-    created_at: "2026-08-01",
-    alasan_non_active: "",
-  },
-  {
-    id_role: 5,
-    nama_role: "Support",
-    deskripsi: "Menangani pertanyaan dan keluhan pengguna.",
-    status: "non active",
-    created_at: "2026-01-20",
-    alasan_non_active: "Digabung sementara ke role Admin.",
-  },
-];
-
 const isActiveStatus = (status) =>
   (status || "").toLowerCase().trim() === "active";
 
@@ -84,33 +39,41 @@ function Roles() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const loadRoles = () => {
-    setLoading(true);
-    setError("");
+  const loadRoles = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-    // Simulasi delay kayak network request
-    setTimeout(() => {
-      setDataRoles(DUMMY_ROLES);
+      const response = await api.get("/api/roles");
+
+      if (response.data?.status === "success") {
+        const roles = (response.data.data || []).map((item) => ({
+          ...item,
+          // Backend role.py saat ini hanya mengembalikan
+          // id_role, nama_role, dan deskripsi.
+          // Karena itu data master dari API dianggap active.
+          status: item.status || "active",
+          created_at: item.created_at || null,
+          alasan_non_active: item.alasan_non_active || "",
+        }));
+
+        setDataRoles(roles);
+      } else {
+        setDataRoles([]);
+        setError(
+          response.data?.message || "Gagal mengambil data roles."
+        );
+      }
+    } catch (err) {
+      console.error("Gagal mengambil data roles:", err);
+      setDataRoles([]);
+      setError(
+        err.response?.data?.message ||
+          "Gagal mengambil data roles dari server."
+      );
+    } finally {
       setLoading(false);
-    }, 400);
-
-    // ===========================
-    // NANTI KALAU BACKEND roles.py SUDAH SIAP, GANTI JADI:
-    // ===========================
-    // try {
-    //   setLoading(true);
-    //   setError("");
-    //   const response = await api.get("/api/roles");
-    //   if (response.data.status === "success") {
-    //     setDataRoles(response.data.data || []);
-    //   } else {
-    //     setError(response.data.message || "Gagal mengambil data roles.");
-    //   }
-    // } catch (err) {
-    //   setError(err.response?.data?.message || "Gagal mengambil data roles dari server.");
-    // } finally {
-    //   setLoading(false);
-    // }
+    }
   };
 
   useEffect(() => {
@@ -349,7 +312,9 @@ function Roles() {
       );
     })
     .filter((item) => {
-      if (!item.created_at) return false;
+      // Endpoint /api/roles saat ini tidak mengirim created_at.
+      // Kalau tanggal tidak tersedia, jangan sembunyikan role.
+      if (!item.created_at) return true;
 
       const created = new Date(item.created_at);
 

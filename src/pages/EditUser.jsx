@@ -88,6 +88,7 @@ function EditUser() {
   const [email, setEmail] = useState("");
   const [tanggal, setTanggal] = useState(null);
   const [role, setRole] = useState("");
+  const [kelasId, setKelasId] = useState("");
 
   // status user (Active / Non Active) -> menentukan apakah field
   // "Alasan Non Active" ditampilkan
@@ -113,6 +114,9 @@ function EditUser() {
   const [roles, setRoles] = useState([]);
   const [rolesLoading, setRolesLoading] = useState(true);
 
+  const [kelasList, setKelasList] = useState([]);
+  const [kelasLoading, setKelasLoading] = useState(true);
+
   useEffect(() => {
     const fetchRoles = async () => {
       try {
@@ -125,7 +129,24 @@ function EditUser() {
       }
     };
 
+    const fetchKelas = async () => {
+      try {
+        const res = await api.get("/api/kelas");
+        const list = (res.data?.data || []).filter(
+          (item) =>
+            (item.status || "active").toLowerCase().trim() === "active"
+        );
+        setKelasList(list);
+      } catch (err) {
+        console.error("Gagal mengambil data kelas:", err);
+        setKelasList([]);
+      } finally {
+        setKelasLoading(false);
+      }
+    };
+
     fetchRoles();
+    fetchKelas();
   }, []);
 
   // ambil data user yang mau diedit dari backend
@@ -147,6 +168,18 @@ function EditUser() {
         setNama(found.nama || "");
         setPhone(found.phone || "");
         setEmail(found.email || "");
+
+        // Kalau user lama memiliki data yang sama dengan salah satu
+        // anggota kelas, pilih otomatis di dropdown kelas.
+        const matchingKelas = kelasList.find(
+          (item) =>
+            String(item.nama || "").trim().toLowerCase() ===
+              String(found.nama || "").trim().toLowerCase() &&
+            String(item.email || "").trim().toLowerCase() ===
+              String(found.email || "").trim().toLowerCase()
+        );
+
+        setKelasId(matchingKelas ? String(matchingKelas.id_kelas) : "");
 
         // sesuaikan: id role user saat ini. Coba beberapa kemungkinan nama field.
         setRole(found.role_id ?? found.id_role ?? "");
@@ -188,7 +221,26 @@ setAlasanNonActive(
     };
 
     if (id) fetchUser();
-  }, [id]);
+  }, [id, kelasList]);
+
+  const handleKelasChange = (e) => {
+    const value = e.target.value;
+    setKelasId(value);
+
+    const selected = kelasList.find(
+      (item) => String(item.id_kelas) === String(value)
+    );
+
+    if (!selected) return;
+
+    setNama(selected.nama || "");
+    setPhone(selected.phone || "");
+    setEmail(selected.email || "");
+
+    if (selected.role_id !== undefined && selected.role_id !== null) {
+      setRole(String(selected.role_id));
+    }
+  };
 
   // tombol aktif / nonaktif
   const isFormValid =
@@ -534,6 +586,50 @@ setAlasanNonActive(
               </h3>
 
               <Form onSubmit={handleSubmit}>
+                {/* Data Kelas */}
+                <Form.Group className="mb-3">
+                  <Form.Label
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: "600",
+                      marginBottom: "6px",
+                      color: "#343A40",
+                    }}
+                  >
+                    Data Kelas
+                  </Form.Label>
+
+                  <Form.Select
+                    value={kelasId}
+                    onChange={handleKelasChange}
+                    disabled={kelasLoading}
+                    style={inputStyle}
+                  >
+                    <option value="">
+                      {kelasLoading
+                        ? "Memuat data kelas..."
+                        : "Pilih data kelas (opsional)"}
+                    </option>
+
+                    {kelasList.map((item) => (
+                      <option key={item.id_kelas} value={item.id_kelas}>
+                        {item.nama} - {item.email}
+                      </option>
+                    ))}
+                  </Form.Select>
+
+                  <div
+                    style={{
+                      color: "#64748B",
+                      fontSize: "12px",
+                      marginTop: "5px",
+                    }}
+                  >
+                    Pilih data kelas untuk mengisi Nama, No. Handphone, Email,
+                    dan Role secara otomatis.
+                  </div>
+                </Form.Group>
+
                 {/* Title */}
                 <Form.Group className="mb-3">
                   <Form.Label

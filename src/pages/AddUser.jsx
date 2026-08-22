@@ -70,6 +70,7 @@ function AddUser() {
   const [email, setEmail] = useState("");
   const [tanggal, setTanggal] = useState(null);
   const [role, setRole] = useState("");
+  const [kelasId, setKelasId] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -90,6 +91,11 @@ function AddUser() {
   const [roles, setRoles] = useState([]);
   const [rolesLoading, setRolesLoading] = useState(true);
 
+  // Data anggota kelas diambil dari backend dan dipakai sebagai
+  // dropdown sumber Nama / No. Handphone / Email / Role.
+  const [kelasList, setKelasList] = useState([]);
+  const [kelasLoading, setKelasLoading] = useState(true);
+
   useEffect(() => {
     const fetchRoles = async () => {
       try {
@@ -102,8 +108,44 @@ function AddUser() {
       }
     };
 
+    const fetchKelas = async () => {
+      try {
+        const res = await api.get("/api/kelas");
+        const list = (res.data?.data || []).filter(
+          (item) =>
+            (item.status || "active").toLowerCase().trim() === "active"
+        );
+        setKelasList(list);
+      } catch (err) {
+        console.error("Gagal mengambil data kelas:", err);
+        setKelasList([]);
+      } finally {
+        setKelasLoading(false);
+      }
+    };
+
     fetchRoles();
+    fetchKelas();
   }, []);
+
+  const handleKelasChange = (e) => {
+    const value = e.target.value;
+    setKelasId(value);
+
+    const selected = kelasList.find(
+      (item) => String(item.id_kelas) === String(value)
+    );
+
+    if (!selected) return;
+
+    setNama(selected.nama || "");
+    setPhone(selected.phone || "");
+    setEmail(selected.email || "");
+
+    if (selected.role_id !== undefined && selected.role_id !== null) {
+      setRole(String(selected.role_id));
+    }
+  };
 
   // tombol aktif / nonaktif
   const isFormValid =
@@ -383,6 +425,50 @@ function AddUser() {
               </h3>
 
               <Form onSubmit={handleSubmit}>
+                {/* Data Kelas */}
+                <Form.Group className="mb-3">
+                  <Form.Label
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: "600",
+                      marginBottom: "6px",
+                      color: "#343A40",
+                    }}
+                  >
+                    Data Kelas
+                  </Form.Label>
+
+                  <Form.Select
+                    value={kelasId}
+                    onChange={handleKelasChange}
+                    disabled={kelasLoading}
+                    style={inputStyle}
+                  >
+                    <option value="">
+                      {kelasLoading
+                        ? "Memuat data kelas..."
+                        : "Pilih data kelas (opsional)"}
+                    </option>
+
+                    {kelasList.map((item) => (
+                      <option key={item.id_kelas} value={item.id_kelas}>
+                        {item.nama} - {item.email}
+                      </option>
+                    ))}
+                  </Form.Select>
+
+                  <div
+                    style={{
+                      color: "#64748B",
+                      fontSize: "12px",
+                      marginTop: "5px",
+                    }}
+                  >
+                    Pilih data kelas untuk mengisi Nama, No. Handphone, Email,
+                    dan Role secara otomatis.
+                  </div>
+                </Form.Group>
+
                 {/* Title */}
                 <Form.Group className="mb-3">
                   <Form.Label>Title</Form.Label>

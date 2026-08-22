@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import api from "../api";
 import {
   Container,
   Row,
@@ -26,73 +27,6 @@ import {
 } from "react-icons/fa";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-
-// ===========================
-// HARDCODE DUMMY DATA (nanti diganti fetch API kelas.py kayak UserManagement.jsx)
-// Kelas sekarang berisi data ANGGOTA/PESERTA kelas, bukan lagi nama mata kelas.
-// ===========================
-const DUMMY_KELAS = [
-  {
-    id_kelas: 1,
-    nama: "Budi Santoso",
-    phone: "081234567891",
-    email: "budi.santoso@mail.com",
-    roles: "Member",
-    status: "active",
-    created_at: "2026-06-10",
-    alasan_non_active: "",
-  },
-  {
-    id_kelas: 2,
-    nama: "Siti Aminah",
-    phone: "081298765432",
-    email: "siti.aminah@mail.com",
-    roles: "Member",
-    status: "active",
-    created_at: "2026-07-02",
-    alasan_non_active: "",
-  },
-  {
-    id_kelas: 3,
-    nama: "Ahmad Fauzi",
-    phone: "085611122233",
-    email: "ahmad.fauzi@mail.com",
-    roles: "Admin",
-    status: "non active",
-    created_at: "2026-03-15",
-    alasan_non_active: "Sedang cuti panjang, akses dinonaktifkan sementara.",
-  },
-  {
-    id_kelas: 4,
-    nama: "Dewi Lestari",
-    phone: "081345567788",
-    email: "dewi.lestari@mail.com",
-    roles: "Admin",
-    status: "active",
-    created_at: "2026-08-01",
-    alasan_non_active: "",
-  },
-  {
-    id_kelas: 5,
-    nama: "Rio Pratama",
-    phone: "082211334455",
-    email: "rio.pratama@mail.com",
-    roles: "Member",
-    status: "non active",
-    created_at: "2026-01-20",
-    alasan_non_active: "Mengundurkan diri dari kelas, menunggu konfirmasi ulang.",
-  },
-  {
-    id_kelas: 6,
-    nama: "Maya Kusuma",
-    phone: "081777889900",
-    email: "maya.kusuma@mail.com",
-    roles: "Member",
-    status: "active",
-    created_at: "2026-05-28",
-    alasan_non_active: "",
-  },
-];
 
 const isActiveStatus = (status) =>
   (status || "").toLowerCase().trim() === "active";
@@ -125,37 +59,60 @@ function Kelas() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const loadKelas = () => {
-    setLoading(true);
-    setError("");
+  // Role master diambil dari backend. Kelas tidak lagi memakai
+  // role hardcode Member/Admin.
+  const [roles, setRoles] = useState([]);
+  const [rolesLoading, setRolesLoading] = useState(true);
 
-    // Simulasi delay kayak network request
-    setTimeout(() => {
-      setDataKelas(DUMMY_KELAS);
+  const loadRoles = async () => {
+    try {
+      setRolesLoading(true);
+
+      const response = await api.get("/api/roles");
+
+      if (response.data?.status === "success") {
+        setRoles(response.data.data || []);
+      } else {
+        setRoles([]);
+      }
+    } catch (err) {
+      console.error("Gagal mengambil role untuk kelas:", err);
+      setRoles([]);
+    } finally {
+      setRolesLoading(false);
+    }
+  };
+
+  const loadKelas = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await api.get("/api/kelas");
+
+      if (response.data?.status === "success") {
+        setDataKelas(response.data.data || []);
+      } else {
+        setDataKelas([]);
+        setError(
+          response.data?.message || "Gagal mengambil data kelas."
+        );
+      }
+    } catch (err) {
+      console.error("Gagal mengambil data kelas:", err);
+      setDataKelas([]);
+      setError(
+        err.response?.data?.message ||
+          "Gagal mengambil data kelas dari server."
+      );
+    } finally {
       setLoading(false);
-    }, 400);
-
-    // ===========================
-    // NANTI KALAU BACKEND kelas.py SUDAH SIAP, GANTI JADI:
-    // ===========================
-    // try {
-    //   setLoading(true);
-    //   setError("");
-    //   const response = await api.get("/api/kelas");
-    //   if (response.data.status === "success") {
-    //     setDataKelas(response.data.data || []);
-    //   } else {
-    //     setError(response.data.message || "Gagal mengambil data kelas.");
-    //   }
-    // } catch (err) {
-    //   setError(err.response?.data?.message || "Gagal mengambil data kelas dari server.");
-    // } finally {
-    //   setLoading(false);
-    // }
+    }
   };
 
   useEffect(() => {
     loadKelas();
+    loadRoles();
   }, []);
 
   // ===========================
@@ -221,12 +178,12 @@ function Kelas() {
     nama: "",
     phone: "",
     email: "",
-    roles: "Member",
+    role_id: "",
   });
   const [adding, setAdding] = useState(false);
 
   const openAddModal = () => {
-    setAddForm({ nama: "", phone: "", email: "", roles: "Member" });
+    setAddForm({ nama: "", phone: "", email: "", role_id: "" });
     setShowAdd(true);
   };
 
@@ -235,38 +192,37 @@ function Kelas() {
     setAddForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSaveAdd = () => {
-    if (!addForm.nama.trim()) return;
+  const handleSaveAdd = async () => {
+    if (!addForm.nama.trim() || !addForm.role_id) return;
 
-    setAdding(true);
+    try {
+      setAdding(true);
 
-    // Simulasi tambah data lokal (nanti diganti api.post("/api/kelas", addForm))
-    setTimeout(() => {
-      setDataKelas((prev) => {
-        const nextId =
-          prev.length > 0
-            ? Math.max(...prev.map((item) => Number(item.id_kelas) || 0)) + 1
-            : 1;
-
-        return [
-          ...prev,
-          {
-            id_kelas: nextId,
-            nama: addForm.nama,
-            phone: addForm.phone,
-            email: addForm.email,
-            roles: addForm.roles,
-            status: "active",
-            created_at: new Date().toISOString().slice(0, 10),
-            alasan_non_active: "",
-          },
-        ];
+      await api.post("/api/kelas", {
+        nama: addForm.nama.trim(),
+        phone: addForm.phone.trim(),
+        email: addForm.email.trim().toLowerCase(),
+        role_id: addForm.role_id,
       });
 
       setShowAdd(false);
-      setAdding(false);
+      setAddForm({
+        nama: "",
+        phone: "",
+        email: "",
+        role_id: "",
+      });
       setTab("active");
-    }, 300);
+      await loadKelas();
+    } catch (err) {
+      console.error("Gagal menambah data kelas:", err);
+      alert(
+        err.response?.data?.message ||
+          "Gagal menambahkan data kelas."
+      );
+    } finally {
+      setAdding(false);
+    }
   };
 
   // ===========================
@@ -278,7 +234,7 @@ function Kelas() {
     nama: "",
     phone: "",
     email: "",
-    roles: "Member",
+    role_id: "",
     alasan_non_active: "",
   });
   const [saving, setSaving] = useState(false);
@@ -289,7 +245,7 @@ function Kelas() {
       nama: item.nama || "",
       phone: item.phone || "",
       email: item.email || "",
-      roles: item.roles || "Member",
+      role_id: item.role_id ?? "",
       alasan_non_active: item.alasan_non_active || "",
     });
     setShowEdit(true);
@@ -300,31 +256,35 @@ function Kelas() {
     setEditForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSaveEdit = () => {
-    if (!selectedEdit) return;
+  const handleSaveEdit = async () => {
+    if (!selectedEdit || !editForm.role_id) return;
 
-    setSaving(true);
+    try {
+      setSaving(true);
 
-    const alasanTerisi = editForm.alasan_non_active.trim() !== "";
-
-    // Simulasi update data lokal (nanti diganti api.put(`/api/kelas/${id}`, editForm))
-    setTimeout(() => {
-      setDataKelas((prev) =>
-        prev.map((item) =>
-          item.id_kelas === selectedEdit.id_kelas
-            ? {
-                ...item,
-                ...editForm,
-                status: alasanTerisi ? "non active" : "active",
-              }
-            : item
-        )
-      );
+      await api.put(`/api/kelas/${selectedEdit.id_kelas}`, {
+        nama: editForm.nama.trim(),
+        phone: editForm.phone.trim(),
+        email: editForm.email.trim().toLowerCase(),
+        role_id: editForm.role_id,
+        status: editForm.alasan_non_active.trim()
+          ? "non active"
+          : "active",
+        alasan_non_active: editForm.alasan_non_active.trim(),
+      });
 
       setShowEdit(false);
       setSelectedEdit(null);
+      await loadKelas();
+    } catch (err) {
+      console.error("Gagal memperbarui data kelas:", err);
+      alert(
+        err.response?.data?.message ||
+          "Gagal memperbarui data kelas."
+      );
+    } finally {
       setSaving(false);
-    }, 300);
+    }
   };
 
   // ===========================
@@ -334,21 +294,26 @@ function Kelas() {
   const [selectedDelete, setSelectedDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const handleDeleteKelas = () => {
+  const handleDeleteKelas = async () => {
     if (!selectedDelete) return;
 
-    setDeleting(true);
+    try {
+      setDeleting(true);
 
-    // Simulasi hapus data lokal (nanti diganti api.delete(`/api/kelas/${id}`))
-    setTimeout(() => {
-      setDataKelas((prev) =>
-        prev.filter((item) => item.id_kelas !== selectedDelete.id_kelas)
-      );
+      await api.delete(`/api/kelas/${selectedDelete.id_kelas}`);
 
       setShowDelete(false);
       setSelectedDelete(null);
+      await loadKelas();
+    } catch (err) {
+      console.error("Gagal menghapus data kelas:", err);
+      alert(
+        err.response?.data?.message ||
+          "Gagal menghapus data kelas."
+      );
+    } finally {
       setDeleting(false);
-    }, 300);
+    }
   };
 
   // ===========================
@@ -358,26 +323,29 @@ function Kelas() {
   const [selectedReActive, setSelectedReActive] = useState(null);
   const [reactivating, setReactivating] = useState(false);
 
-  const handleReactivateKelas = () => {
+  const handleReactivateKelas = async () => {
     if (!selectedReActive) return;
 
-    setReactivating(true);
+    try {
+      setReactivating(true);
 
-    // Simulasi reaktivasi data lokal (nanti diganti api.put(`/api/kelas/${id}/reactivate`))
-    setTimeout(() => {
-      setDataKelas((prev) =>
-        prev.map((item) =>
-          item.id_kelas === selectedReActive.id_kelas
-            ? { ...item, status: "active", alasan_non_active: "" }
-            : item
-        )
+      await api.put(
+        `/api/kelas/${selectedReActive.id_kelas}/reactivate`
       );
 
       setShowReActive(false);
       setSelectedReActive(null);
-      setReactivating(false);
       setTab("active");
-    }, 300);
+      await loadKelas();
+    } catch (err) {
+      console.error("Gagal mengaktifkan kembali kelas:", err);
+      alert(
+        err.response?.data?.message ||
+          "Gagal mengaktifkan kembali data kelas."
+      );
+    } finally {
+      setReactivating(false);
+    }
   };
 
   // ===========================
@@ -1075,12 +1043,19 @@ function Kelas() {
             <Form.Group className="mb-2">
               <Form.Label style={{ fontWeight: 600 }}>Roles</Form.Label>
               <Form.Select
-                name="roles"
-                value={addForm.roles}
+                name="role_id"
+                value={addForm.role_id}
                 onChange={handleAddChange}
+                disabled={rolesLoading}
               >
-                <option value="Member">Member</option>
-                <option value="Admin">Admin</option>
+                <option value="" disabled>
+                  {rolesLoading ? "Memuat role..." : "Pilih Role"}
+                </option>
+                {roles.map((role) => (
+                  <option key={role.id_role} value={role.id_role}>
+                    {role.nama_role}
+                  </option>
+                ))}
               </Form.Select>
             </Form.Group>
           </Form>
@@ -1094,7 +1069,7 @@ function Kelas() {
                 border: "none",
                 borderRadius: 10,
               }}
-              disabled={adding || !addForm.nama.trim()}
+              disabled={adding || !addForm.nama.trim() || !addForm.role_id}
               onClick={handleSaveAdd}
             >
               {adding ? <Spinner animation="border" size="sm" /> : "SIMPAN"}
@@ -1179,12 +1154,19 @@ function Kelas() {
             <Form.Group className="mb-3">
               <Form.Label style={{ fontWeight: 600 }}>Roles</Form.Label>
               <Form.Select
-                name="roles"
-                value={editForm.roles}
+                name="role_id"
+                value={editForm.role_id}
                 onChange={handleEditChange}
+                disabled={rolesLoading}
               >
-                <option value="Member">Member</option>
-                <option value="Admin">Admin</option>
+                <option value="" disabled>
+                  {rolesLoading ? "Memuat role..." : "Pilih Role"}
+                </option>
+                {roles.map((role) => (
+                  <option key={role.id_role} value={role.id_role}>
+                    {role.nama_role}
+                  </option>
+                ))}
               </Form.Select>
             </Form.Group>
 

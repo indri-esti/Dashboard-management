@@ -86,6 +86,28 @@ function UserManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Role master dari backend untuk memastikan User Management
+  // menampilkan nama role berdasarkan role_id.
+  const [roles, setRoles] = useState([]);
+  const [rolesLoading, setRolesLoading] = useState(true);
+
+  const loadRoles = async () => {
+    try {
+      setRolesLoading(true);
+      const response = await api.get("/api/roles");
+      setRoles(
+        response.data?.status === "success"
+          ? response.data.data || []
+          : []
+      );
+    } catch (err) {
+      console.error("Gagal mengambil role:", err);
+      setRoles([]);
+    } finally {
+      setRolesLoading(false);
+    }
+  };
+
   const loadUsers = async () => {
     try {
       setLoading(true);
@@ -104,6 +126,12 @@ function UserManagement() {
             user.alasanNonActive ??
             user.reason ??
             "",
+          role:
+            user.role ||
+            roles.find(
+              (r) => String(r.id_role) === String(user.role_id)
+            )?.nama_role ||
+            "-",
         }));
 
         setDataUsers(normalizedUsers);
@@ -126,8 +154,25 @@ function UserManagement() {
   };
 
   useEffect(() => {
+    loadRoles();
     loadUsers();
   }, []);
+
+  useEffect(() => {
+    if (rolesLoading) return;
+
+    setDataUsers((prev) =>
+      prev.map((user) => ({
+        ...user,
+        role:
+          user.role ||
+          roles.find(
+            (r) => String(r.id_role) === String(user.role_id)
+          )?.nama_role ||
+          "-",
+      }))
+    );
+  }, [roles, rolesLoading]);
 
   // ===========================
   // Pagination
@@ -280,6 +325,9 @@ function UserManagement() {
         .toLowerCase()
         .includes(keyword) ||
       (item.phone || "")
+        .toLowerCase()
+        .includes(keyword) ||
+      (item.role || "")
         .toLowerCase()
         .includes(keyword)
     );
