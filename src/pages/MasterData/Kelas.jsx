@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Container,
   Row,
@@ -119,8 +118,6 @@ const formatPhoneNumber = (phone) => {
 };
 
 function Kelas() {
-  const navigate = useNavigate();
-
   // ===========================
   // Data kelas (HARDCODE sementara)
   // ===========================
@@ -215,6 +212,62 @@ function Kelas() {
   // ===========================
   const [showDetail, setShowDetail] = useState(false);
   const [selectedKelas, setSelectedKelas] = useState(null);
+
+  // ===========================
+  // Add modal
+  // ===========================
+  const [showAdd, setShowAdd] = useState(false);
+  const [addForm, setAddForm] = useState({
+    nama: "",
+    phone: "",
+    email: "",
+    roles: "Member",
+  });
+  const [adding, setAdding] = useState(false);
+
+  const openAddModal = () => {
+    setAddForm({ nama: "", phone: "", email: "", roles: "Member" });
+    setShowAdd(true);
+  };
+
+  const handleAddChange = (e) => {
+    const { name, value } = e.target;
+    setAddForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveAdd = () => {
+    if (!addForm.nama.trim()) return;
+
+    setAdding(true);
+
+    // Simulasi tambah data lokal (nanti diganti api.post("/api/kelas", addForm))
+    setTimeout(() => {
+      setDataKelas((prev) => {
+        const nextId =
+          prev.length > 0
+            ? Math.max(...prev.map((item) => Number(item.id_kelas) || 0)) + 1
+            : 1;
+
+        return [
+          ...prev,
+          {
+            id_kelas: nextId,
+            nama: addForm.nama,
+            phone: addForm.phone,
+            email: addForm.email,
+            roles: addForm.roles,
+            status: "active",
+            created_at: new Date().toISOString().slice(0, 10),
+            alasan_non_active: "",
+          },
+        ];
+      });
+
+      setShowAdd(false);
+      setAdding(false);
+      setTab("active");
+    }, 300);
+  };
 
   // ===========================
   // Edit modal
@@ -631,7 +684,7 @@ function Kelas() {
 
             <Col md={4} className="text-end">
               <Button
-                onClick={() => navigate("/master-data/kelas/tambah")}
+                onClick={openAddModal}
                 style={{
                   background: "#2538C8",
                   border: "none",
@@ -960,6 +1013,110 @@ function Kelas() {
               cursor: "pointer",
             }}
             onClick={() => setShowDetail(false)}
+          >
+            <FaTimes size={14} color="#64748B" />
+          </div>
+        </Modal.Body>
+      </Modal>
+
+      {/* Modal Tambah */}
+      <Modal
+        show={showAdd}
+        onHide={() => !adding && setShowAdd(false)}
+        centered
+      >
+        <Modal.Body
+          style={{ padding: "36px", borderRadius: 18, position: "relative" }}
+        >
+          <h4 style={{ fontWeight: 700, textAlign: "center", marginBottom: 30 }}>
+            Tambah Anggota Kelas
+          </h4>
+
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label style={{ fontWeight: 600 }}>Nama</Form.Label>
+              <Form.Control
+                name="nama"
+                value={addForm.nama}
+                onChange={handleAddChange}
+                placeholder="Masukkan nama"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label style={{ fontWeight: 600 }}>No. Handphone</Form.Label>
+              <Form.Control
+                name="phone"
+                value={addForm.phone}
+                onChange={handleAddChange}
+                placeholder="Contoh: 081234567890"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label style={{ fontWeight: 600 }}>Email</Form.Label>
+              <Form.Control
+                type="email"
+                name="email"
+                value={addForm.email}
+                onChange={handleAddChange}
+                placeholder="Masukkan email"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-2">
+              <Form.Label style={{ fontWeight: 600 }}>Roles</Form.Label>
+              <Form.Select
+                name="roles"
+                value={addForm.roles}
+                onChange={handleAddChange}
+              >
+                <option value="Member">Member</option>
+                <option value="Admin">Admin</option>
+              </Form.Select>
+            </Form.Group>
+          </Form>
+
+          <div className="d-flex justify-content-between mt-4">
+            <Button
+              style={{
+                width: "48%",
+                height: 46,
+                background: "#2538C8",
+                border: "none",
+                borderRadius: 10,
+              }}
+              disabled={adding || !addForm.nama.trim()}
+              onClick={handleSaveAdd}
+            >
+              {adding ? <Spinner animation="border" size="sm" /> : "SIMPAN"}
+            </Button>
+
+            <Button
+              variant="outline-secondary"
+              style={{ width: "48%", height: 46, borderRadius: 10 }}
+              disabled={adding}
+              onClick={() => setShowAdd(false)}
+            >
+              BATAL
+            </Button>
+          </div>
+
+          <div
+            style={{
+              position: "absolute",
+              top: 18,
+              right: 18,
+              width: 34,
+              height: 34,
+              borderRadius: "50%",
+              background: "#F1F5F9",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              cursor: "pointer",
+            }}
+            onClick={() => !adding && setShowAdd(false)}
           >
             <FaTimes size={14} color="#64748B" />
           </div>
