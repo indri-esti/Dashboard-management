@@ -245,23 +245,31 @@ function Roles() {
   const [selectedDelete, setSelectedDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const handleDeleteRole = () => {
+    const handleDeleteRole = async () => {
     if (!selectedDelete) return;
 
-    setDeleting(true);
+    try {
+      setDeleting(true);
 
-    // Simulasi hapus data lokal (nanti diganti api.delete(`/api/roles/${id}`))
-    setTimeout(() => {
+      await api.delete(`/api/roles/${selectedDelete.id_role}`);
+
       setDataRoles((prev) =>
         prev.filter((item) => item.id_role !== selectedDelete.id_role)
       );
 
       setShowDelete(false);
       setSelectedDelete(null);
+    } catch (err) {
+      console.error("Gagal menghapus role:", err);
+      alert(
+        err.response?.data?.message ||
+          "Gagal menghapus role dari server."
+      );
+    } finally {
       setDeleting(false);
-    }, 300);
+    }
   };
-
+  
   // ===========================
   // Reactivate
   // ===========================
@@ -269,7 +277,7 @@ function Roles() {
   const [selectedReActive, setSelectedReActive] = useState(null);
   const [reactivating, setReactivating] = useState(false);
 
-  const handleReactivateRole = () => {
+  const handleReactivateRole = async () => {
     if (!selectedReActive) return;
 
     setReactivating(true);
