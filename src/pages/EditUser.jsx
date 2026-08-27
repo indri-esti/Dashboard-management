@@ -37,13 +37,6 @@ import api from "../api";
 const isActiveStatus = (status) =>
   (status || "").toLowerCase().trim() === "active";
 
-// Daftar role statis di frontend. Isi role (Admin / Member) dikontrol
-// di sini saja, tidak lagi diambil dari backend (/api/roles).
-const ROLES = [
-  { id_role: 1, nama_role: "Admin" },
-  { id_role: 2, nama_role: "Member" },
-];
-
 function EditUser() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -96,6 +89,10 @@ function EditUser() {
   const [tanggal, setTanggal] = useState(null);
   const [role, setRole] = useState("");
 
+  // daftar role dinamis dari backend (/api/roles)
+  const [roles, setRoles] = useState([]);
+  const [rolesLoading, setRolesLoading] = useState(true);
+
   // status user (Active / Non Active) -> menentukan apakah field
   // "Alasan Non Active" ditampilkan
   const [status, setStatus] = useState("Active");
@@ -114,6 +111,27 @@ function EditUser() {
   const [alasanError, setAlasanError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [confirmError, setConfirmError] = useState("");
+
+  // ambil daftar role dari backend
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        setRolesLoading(true);
+
+        const res = await api.get("/api/roles");
+        const data = res.data?.data || res.data || [];
+
+        setRoles(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Gagal mengambil data role:", err);
+        setRoles([]);
+      } finally {
+        setRolesLoading(false);
+      }
+    };
+
+    fetchRoles();
+  }, []);
 
   // ambil data user yang mau diedit dari backend
   useEffect(() => {
@@ -841,16 +859,17 @@ setAlasanNonActive(
                   <Form.Select
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
+                    disabled={rolesLoading}
                     style={{
                       height: "48px",
                       borderRadius: "12px",
                     }}
                   >
                     <option value="" disabled hidden>
-                      Pilih Role
+                      {rolesLoading ? "Memuat role..." : "Pilih Role"}
                     </option>
 
-                    {ROLES.map((r) => (
+                    {roles.map((r) => (
                       <option key={r.id_role} value={r.id_role}>
                         {r.nama_role}
                       </option>
