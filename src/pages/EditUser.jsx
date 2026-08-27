@@ -37,6 +37,13 @@ import api from "../api";
 const isActiveStatus = (status) =>
   (status || "").toLowerCase().trim() === "active";
 
+// Daftar role statis di frontend. Isi role (Admin / Member) dikontrol
+// di sini saja, tidak lagi diambil dari backend (/api/roles).
+const ROLES = [
+  { id_role: 1, nama_role: "Admin" },
+  { id_role: 2, nama_role: "Member" },
+];
+
 function EditUser() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -88,7 +95,6 @@ function EditUser() {
   const [email, setEmail] = useState("");
   const [tanggal, setTanggal] = useState(null);
   const [role, setRole] = useState("");
-  const [kelasId, setKelasId] = useState("");
 
   // status user (Active / Non Active) -> menentukan apakah field
   // "Alasan Non Active" ditampilkan
@@ -109,74 +115,6 @@ function EditUser() {
   const [passwordError, setPasswordError] = useState("");
   const [confirmError, setConfirmError] = useState("");
 
-  // daftar role diambil dari backend (/api/roles) -> hanya Admin & Member
-  // (tidak ada lagi role hardcode seperti Staff / Guru)
-  const [roles, setRoles] = useState([]);
-  const [rolesLoading, setRolesLoading] = useState(true);
-
-  const [kelasList, setKelasList] = useState([]);
-  const [kelasLoading, setKelasLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const getList = (res, key) => {
-      const body = res?.data;
-      if (Array.isArray(body)) return body;
-      if (Array.isArray(body?.data)) return body.data;
-      if (Array.isArray(body?.[key])) return body[key];
-      return [];
-    };
-
-    const fetchRoles = async () => {
-      try {
-        setRolesLoading(true);
-        const res = await api.get("/api/roles");
-        if (!cancelled) setRoles(getList(res, "roles"));
-      } catch (err) {
-        console.error("Gagal mengambil data role:", err);
-        if (!cancelled) setRoles([]);
-      } finally {
-        if (!cancelled) setRolesLoading(false);
-      }
-    };
-
-    const fetchKelas = async () => {
-      try {
-        setKelasLoading(true);
-        const res = await api.get("/api/kelas");
-
-        const list = getList(res, "kelas").filter(
-          (item) =>
-            String(item.status ?? "active").toLowerCase().trim() === "active"
-        );
-
-        if (!cancelled) setKelasList(list);
-      } catch (err) {
-        console.error("Gagal mengambil data kelas:", err);
-        console.error("Detail error kelas:", err.response?.data || err.message);
-        if (!cancelled) setKelasList([]);
-      } finally {
-        if (!cancelled) setKelasLoading(false);
-      }
-    };
-
-    fetchRoles();
-    fetchKelas();
-
-    const refreshDropdownData = () => {
-      fetchRoles();
-      fetchKelas();
-    };
-
-    window.addEventListener("focus", refreshDropdownData);
-
-    return () => {
-      cancelled = true;
-      window.removeEventListener("focus", refreshDropdownData);
-    };
-  }, []);
-
   // ambil data user yang mau diedit dari backend
   useEffect(() => {
     const fetchUser = async () => {
@@ -196,18 +134,6 @@ function EditUser() {
         setNama(found.nama || "");
         setPhone(found.phone || "");
         setEmail(found.email || "");
-
-        // Kalau user lama memiliki data yang sama dengan salah satu
-        // anggota kelas, pilih otomatis di dropdown kelas.
-        const matchingKelas = kelasList.find(
-          (item) =>
-            String(item.nama || "").trim().toLowerCase() ===
-              String(found.nama || "").trim().toLowerCase() &&
-            String(item.email || "").trim().toLowerCase() ===
-              String(found.email || "").trim().toLowerCase()
-        );
-
-        setKelasId(matchingKelas ? String(matchingKelas.id_kelas) : "");
 
         // sesuaikan: id role user saat ini. Coba beberapa kemungkinan nama field.
         setRole(found.role_id ?? found.id_role ?? "");
@@ -249,26 +175,7 @@ setAlasanNonActive(
     };
 
     if (id) fetchUser();
-  }, [id, kelasList]);
-
-  const handleKelasChange = (e) => {
-    const value = e.target.value;
-    setKelasId(value);
-
-    const selected = kelasList.find(
-      (item) => String(item.id_kelas) === String(value)
-    );
-
-    if (!selected) return;
-
-    setNama(selected.nama || "");
-    setPhone(selected.phone || "");
-    setEmail(selected.email || "");
-
-    if (selected.role_id !== undefined && selected.role_id !== null) {
-      setRole(String(selected.role_id));
-    }
-  };
+  }, [id]);
 
   // tombol aktif / nonaktif
   const isFormValid =
@@ -614,50 +521,6 @@ setAlasanNonActive(
               </h3>
 
               <Form onSubmit={handleSubmit}>
-                {/* Data Kelas */}
-                <Form.Group className="mb-3">
-                  <Form.Label
-                    style={{
-                      fontSize: "13px",
-                      fontWeight: "600",
-                      marginBottom: "6px",
-                      color: "#343A40",
-                    }}
-                  >
-                    Data Kelas
-                  </Form.Label>
-
-                  <Form.Select
-                    value={kelasId}
-                    onChange={handleKelasChange}
-                    disabled={kelasLoading}
-                    style={inputStyle}
-                  >
-                    <option value="">
-                      {kelasLoading
-                        ? "Memuat data kelas..."
-                        : "Pilih data kelas (opsional)"}
-                    </option>
-
-                    {kelasList.map((item) => (
-                      <option key={item.id_kelas} value={item.id_kelas}>
-                        {item.nama} - {item.email}
-                      </option>
-                    ))}
-                  </Form.Select>
-
-                  <div
-                    style={{
-                      color: "#64748B",
-                      fontSize: "12px",
-                      marginTop: "5px",
-                    }}
-                  >
-                    Pilih data kelas untuk mengisi Nama, No. Handphone, Email,
-                    dan Role secara otomatis.
-                  </div>
-                </Form.Group>
-
                 {/* Title */}
                 <Form.Group className="mb-3">
                   <Form.Label
@@ -963,7 +826,7 @@ setAlasanNonActive(
                   )}
                 </Form.Group>
 
-                {/* Roles - diambil dari backend (/api/roles), hanya Admin & Member */}
+                {/* Roles */}
                 <Form.Group className="mb-3">
                   <Form.Label
                     style={{
@@ -978,17 +841,16 @@ setAlasanNonActive(
                   <Form.Select
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
-                    disabled={rolesLoading}
                     style={{
                       height: "48px",
                       borderRadius: "12px",
                     }}
                   >
                     <option value="" disabled hidden>
-                      {rolesLoading ? "Memuat role..." : "Pilih Role"}
+                      Pilih Role
                     </option>
 
-                    {roles.map((r) => (
+                    {ROLES.map((r) => (
                       <option key={r.id_role} value={r.id_role}>
                         {r.nama_role}
                       </option>
