@@ -291,24 +291,19 @@ setAlasanNonActive(
     setSaving(true);
 
     try {
-      const payload = {
+     const payload = {
   title,
   nama: nama.trim(),
   phone,
   email: email.trim().toLowerCase(),
-  tanggal_lahir: tanggal
-    ? format(tanggal, "yyyy-MM-dd")
-    : null,
+  tanggal_lahir: tanggal ? format(tanggal, "yyyy-MM-dd") : null,
   role_id: role,
   status: status.toLowerCase(),
-  alasan_non_active:
-    status === "Non Active"
-      ? alasanNonActive.trim()
-      : "",
+  alasan_non_active: status === "Non Active" ? alasanNonActive.trim() : "",
   ...(resetPassword ? { password } : {}),
 };
 
-      const res = await api.put(`/api/users/${id}`, payload);
+const res = await api.put(`/api/users/${id}`, payload);
 
       setAlertType("success");
       setAlertTitle("Berhasil!");
