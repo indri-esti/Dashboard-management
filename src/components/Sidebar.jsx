@@ -22,7 +22,6 @@ import {
   MdOutlinePeople,
   MdPersonOutline,
   MdChevronRight,
-  MdOutlineAdminPanelSettings,
 } from "react-icons/md";
 
 import logo from "../assets/logo.png";
@@ -185,6 +184,24 @@ function Sidebar() {
     transition: "all .22s ease",
     textDecoration: "none",
   });
+
+  // Style khusus untuk item yang non-active (belum bisa dinavigasi)
+  const submenuDisabledStyle = {
+    display: "flex",
+    alignItems: "center",
+    gap: 11,
+    padding: "9px 12px",
+    marginBottom: 4,
+    borderRadius: 10,
+    color: "rgba(255,255,255,.35)",
+    background: "transparent",
+    fontSize: 13.5,
+    fontWeight: 450,
+    transition: "all .22s ease",
+    textDecoration: "none",
+    cursor: "not-allowed",
+    opacity: 0.6,
+  };
 
   const dropdownTitleStyle = {
     display: "flex",
@@ -556,19 +573,17 @@ function Sidebar() {
                   <span>Main Banner</span>
                 </Nav.Link>
 
-                <Nav.Link
-                  as={Link}
-                  to="/master-data/kelas"
-                  style={submenuStyle(
-                    location.pathname ===
-                      "/master-data/kelas"
-                  )}
+                {/* Kelas - dinonaktifkan sementara (belum siap), tidak bisa dinavigasi */}
+                <div
+                  onClick={(e) => e.preventDefault()}
+                  style={submenuDisabledStyle}
+                  title="Belum tersedia"
                 >
                   <MdOutlineSchool
                     size={18}
                   />
                   <span>Kelas</span>
-                </Nav.Link>
+                </div>
 
                 <Nav.Link
                   as={Link}
@@ -610,20 +625,6 @@ function Sidebar() {
                     size={18}
                   />
                   <span>Blog</span>
-                </Nav.Link>
-
-                <Nav.Link
-                  as={Link}
-                  to="/master-data/roles"
-                  style={submenuStyle(
-                    location.pathname ===
-                      "/master-data/roles"
-                  )}
-                >
-                  <MdOutlineAdminPanelSettings
-                    size={18}
-                  />
-                  <span>Roles</span>
                 </Nav.Link>
               </div>
             )}
